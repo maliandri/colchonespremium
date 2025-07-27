@@ -1,111 +1,118 @@
-document.addEventListener('DOMContentLoaded', async () => {
-    const API_URL = location.hostname.includes('localhost')
-        ? 'http://localhost:4000/api'
-        : 'https://colchonqn.onrender.com/api';
+require('dotenv').config();
+const express = require('express');
+const cors = require('cors');
+const xlsx = require('xlsx');
+const path = require('path');
+const fs = require('fs');
 
-    try {
-        const res = await fetch(`${API_URL}/productos`);
-        if (!res.ok) throw new Error(`Error HTTP: ${res.status}`);
+const app = express();
 
-        const json = await res.json();
-        if (!json.data || !Array.isArray(json.data)) throw new Error('Respuesta inválida');
+// Configuración CORS
+const corsOptions = {
+  origin: [
+    'https://colchonqn.netlify.app',
+    'http://localhost:3000',
+    'http://localhost:4000'
+  ],
+  optionsSuccessStatus: 200
+};
+app.use(cors(corsOptions));
 
-        // Filtrar productos que mostrar
-        const productos = json.data.filter(p => p.Mostrar && p.Mostrar.toLowerCase() === 'si');
+// Servir imágenes estáticas
+const imgPath = path.join(__dirname, 'Assets', 'IMG');
+app.use('/images', express.static(imgPath));
 
-        renderProductos(productos);
-
-        setupFiltros(productos);
-        setupBusqueda(productos);
-        setupOrden(productos);
-
-    } catch (error) {
-        console.error('Error al cargar productos:', error);
-        document.getElementById('contenedor-productos').innerHTML = `
-            <p style="color: red;">Error al cargar productos. Intenta recargar la página.</p>
-        `;
-    }
+// Middleware de log
+app.use((req, res, next) => {
+  console.log(`${new Date().toISOString()} - ${req.method} ${req.path}`);
+  next();
 });
 
-function renderProductos(productos) {
-    const contenedor = document.getElementById('contenedor-productos');
-    if (!contenedor) return;
+// Cargar datos del Excel con filtro por Mostrar = "si"
+let productosData = [];
+try {
+  const filePath = path.join(__dirname, 'precios_colchones.xlsx');
+  console.log("Cargando datos desde:", filePath);
 
-    if (productos.length === 0) {
-        contenedor.innerHTML = '<p>No hay productos para mostrar.</p>';
-        return;
-    }
+  const workbook = xlsx.readFile(filePath);
+  const sheetName = workbook.SheetNames[0];
 
-    contenedor.innerHTML = productos.map(p => `
-        <div class="producto-card">
-            <div class="producto-img">
-                <img src="${p.Imagen || 'https://via.placeholder.com/200x150?text=Sin+imagen'}" alt="${p.Nombre}" />
-            </div>
-            <div class="producto-info">
-                <h3 class="producto-nombre">${p.Nombre}</h3>
-                <div class="producto-categoria">${p.Categoria || 'Sin categoría'}</div>
-                <div class="producto-precio">${p.Precio != null ? `$${p.Precio.toLocaleString('es-AR')}` : 'Precio no disponible'}</div>
-            </div>
-        </div>
-    `).join('');
-}
+  productosData = xlsx.utils.sheet_to_json(workbook.Sheets[sheetName])
+    .filter(p => (p.Mostrar || '').toString().trim().toLowerCase() === 'si')
+    .map(p => {
+      // Nombre del archivo de imagen
+      const imgFile = `${p.Nombre}.jpg`; // Cambiar si usas .png
+      const fullImgPath = path.join(imgPath, imgFile);
 
-function setupFiltros(productos) {
-    const filtro = document.getElementById('filtro-categoria');
-    if (!filtro) return;
-
-    filtro.addEventListener('change', () => {
-        filtrarYMostrar(productos);
+      // Si existe el archivo, usarlo. Si no, usar default.jpg
+      return {
+        ...p,
+        imagen_url: fs.existsSync(fullImgPath)
+          ? `/images/${encodeURIComponent(imgFile)}`
+          : `/images/default.jpg`
+      };
     });
+
+  console.log(`✅ Datos cargados: ${productosData.length} productos visibles`);
+} catch (error) {
+  console.error("❌ Error al cargar el archivo Excel:", error);
+  process.exit(1);
 }
 
-function setupBusqueda(productos) {
-    const busqueda = document.getElementById('busqueda');
-    if (!busqueda) return;
+// Test
+app.get('/test', (req, res) => {
+  res.json({
+    status: 'success',
+    message: "API funcionando correctamente",
+    timestamp: new Date().toISOString(),
+    data: {
+      total_productos: productosData.length,
+      categorias: [...new Set(productosData.map(p => p.Categoria))].length
+    }
+  });
+});
 
-    busqueda.addEventListener('input', () => {
-        filtrarYMostrar(productos);
+// Endpoint principal
+app.get('/api/productos', (req, res) => {
+  try {
+    const { categoria, limite } = req.query;
+    let data = [...productosData];
+
+    if (categoria) {
+      data = data.filter(p => p.Categoria === categoria);
+    }
+
+    if (limite && !isNaN(limite)) {
+      data = data.slice(0, Number(limite));
+    }
+
+    res.json({
+      status: 'success',
+      results: data.length,
+      data
     });
-}
 
-function setupOrden(productos) {
-    const orden = document.getElementById('orden');
-    if (!orden) return;
-
-    orden.addEventListener('change', () => {
-        filtrarYMostrar(productos);
+  } catch (error) {
+    console.error("Error en /api/productos:", error);
+    res.status(500).json({
+      status: 'error',
+      message: "Error interno del servidor"
     });
-}
+  }
+});
 
-function filtrarYMostrar(productos) {
-    const filtro = document.getElementById('filtro-categoria').value.toLowerCase();
-    const busqueda = document.getElementById('busqueda').value.toLowerCase();
-    const orden = document.getElementById('orden').value;
+// Ruta no encontrada
+app.use((req, res) => {
+  res.status(404).json({
+    status: 'fail',
+    message: 'Ruta no encontrada'
+  });
+});
 
-    let resultados = productos;
-
-    if (filtro) {
-        resultados = resultados.filter(p => p.Categoria && p.Categoria.toLowerCase() === filtro);
-    }
-
-    if (busqueda) {
-        resultados = resultados.filter(p => p.Nombre.toLowerCase().includes(busqueda));
-    }
-
-    switch (orden) {
-        case 'nombre-asc':
-            resultados.sort((a, b) => a.Nombre.localeCompare(b.Nombre));
-            break;
-        case 'nombre-desc':
-            resultados.sort((a, b) => b.Nombre.localeCompare(a.Nombre));
-            break;
-        case 'precio-asc':
-            resultados.sort((a, b) => (a.Precio || 0) - (b.Precio || 0));
-            break;
-        case 'precio-desc':
-            resultados.sort((a, b) => (b.Precio || 0) - (a.Precio || 0));
-            break;
-    }
-
-    renderProductos(resultados);
-}
+const PORT = process.env.PORT || 4000;
+app.listen(PORT, () => {
+  console.log(`\n=== SERVIDOR ACTIVO ===`);
+  console.log(`🔗 http://localhost:${PORT}/api/productos`);
+  console.log(`🔗 Prueba: http://localhost:${PORT}/test`);
+  console.log(`🚀 Entorno: ${process.env.NODE_ENV || 'development'}\n`);
+});
