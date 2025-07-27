@@ -39,6 +39,8 @@ document.addEventListener('DOMContentLoaded', async () => {
 });
 
 // ========== SPINNER ==========
+// ... (mantén igual)
+
 function mostrarSpinner() {
     const spinner = document.createElement('div');
     spinner.id = 'spinner-carga';
@@ -54,6 +56,8 @@ function ocultarSpinner() {
 }
 
 // ========== CARRUSEL ==========
+// ... (mantén igual)
+
 function initCarousel() {
     const carousel = document.querySelector('.carousel-inner');
     const items = document.querySelectorAll('.carousel-item');
@@ -108,6 +112,7 @@ function initCarousel() {
 }
 
 // ========== PRODUCTOS DESTACADOS ==========
+
 function mostrarProductosDestacados(productos) {
     const contenedor = document.querySelector('.productos-destacados');
     if (!contenedor) return;
@@ -118,7 +123,7 @@ function mostrarProductosDestacados(productos) {
         .map(producto => `
             <div class="producto-destacado">
                 <div class="producto-destacado-img" 
-                     style="background-image: url('https://via.placeholder.com/300x200?text=${encodeURIComponent(producto.Nombre.substring(0, 20))}')">
+                     style="background-image: url('${producto.Imagen || `https://via.placeholder.com/300x200?text=${encodeURIComponent(producto.Nombre.substring(0, 20))}`}')">
                     <span class="etiqueta-oferta">OFERTA</span>
                 </div>
                 <div class="producto-destacado-info">
@@ -141,6 +146,7 @@ function mostrarProductosDestacados(productos) {
 }
 
 // ========== CATEGORÍAS ==========
+
 function mostrarCategorias(productos) {
     const contenedor = document.querySelector('.categorias-grid');
     const filtroCategoria = document.getElementById('filtro-categoria');
@@ -151,17 +157,21 @@ function mostrarCategorias(productos) {
     filtroCategoria.innerHTML = '<option value="">Todas las categorías</option>' +
         categorias.map(cat => `<option value="${cat}">${cat}</option>`).join('');
 
-    contenedor.innerHTML = categorias.slice(0, 4).map(categoria => `
-        <div class="categoria-card" data-categoria="${categoria}">
-            <div class="categoria-img" 
-                 style="background-image: url('https://via.placeholder.com/300x200?text=${encodeURIComponent(categoria)}')">
+    contenedor.innerHTML = categorias.slice(0, 4).map(categoria => {
+        // Buscar imagen para categoría (busca primer producto que la tenga)
+        const productoCat = productos.find(p => p.Categoria === categoria && p.Imagen);
+        const imagenCat = productoCat ? productoCat.Imagen : `https://via.placeholder.com/300x200?text=${encodeURIComponent(categoria)}`;
+
+        return `
+            <div class="categoria-card" data-categoria="${categoria}">
+                <div class="categoria-img" style="background-image: url('${imagenCat}')"></div>
+                <div class="categoria-info">
+                    <h3>${categoria}</h3>
+                    <p>${productos.filter(p => p.Categoria === categoria).length} productos</p>
+                </div>
             </div>
-            <div class="categoria-info">
-                <h3>${categoria}</h3>
-                <p>${productos.filter(p => p.Categoria === categoria).length} productos</p>
-            </div>
-        </div>
-    `).join('');
+        `;
+    }).join('');
 
     contenedor.addEventListener('click', (e) => {
         const card = e.target.closest('.categoria-card');
@@ -170,6 +180,7 @@ function mostrarCategorias(productos) {
 }
 
 // ========== MOSTRAR PRODUCTOS ==========
+
 function mostrarProductos(productos, filtros = {}) {
     const contenedor = document.getElementById('contenedor-productos');
     if (!contenedor) return;
@@ -206,6 +217,9 @@ function mostrarProductos(productos, filtros = {}) {
                 <div class="etiquetas">
                     <span class="categoria">${producto.Categoria || 'Sin categoría'}</span>
                 </div>
+                <div class="producto-img">
+                    <img src="${producto.Imagen || `https://via.placeholder.com/200x150?text=Sin+imagen`}" alt="${producto.Nombre}">
+                </div>
                 <button class="btn ver-detalle" data-nombre="${encodeURIComponent(producto.Nombre)}">Ver Detalle</button>
             </div>
         `).join('') :
@@ -222,6 +236,8 @@ function mostrarProductos(productos, filtros = {}) {
 }
 
 // ========== FORMULARIO ==========
+// (Mantener igual)
+
 function setupFormularioContacto() {
     const formulario = document.getElementById('formulario-contacto');
     if (!formulario) return;
@@ -244,6 +260,8 @@ function setupFormularioContacto() {
 }
 
 // ========== FILTROS ==========
+// (Mantener igual)
+
 function setupFiltros(productos) {
     const filtroCategoria = document.getElementById('filtro-categoria');
     const busqueda = document.getElementById('busqueda');
@@ -258,6 +276,8 @@ function setupFiltros(productos) {
 }
 
 // ========== FUNCIONES AUXILIARES ==========
+// (Mantener igual)
+
 function filtrarPorCategoria(categoria) {
     const filtro = document.getElementById('filtro-categoria');
     if (filtro) {

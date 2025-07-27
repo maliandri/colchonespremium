@@ -7,42 +7,43 @@ const fs = require('fs');
 
 const app = express();
 
-// Configuración CORS para producción y desarrollo
+// Configuración CORS
 const corsOptions = {
   origin: [
-    'https://colchonqn.netlify.app', // URL de frontend en producción
-    'http://localhost:3000',           // Frontend local
-    'http://localhost:4000'            // Backend local
+    'https://colchonqn.netlify.app',
+    'http://localhost:3000',
+    'http://localhost:4000'
   ],
   optionsSuccessStatus: 200
 };
 app.use(cors(corsOptions));
 
-// Middleware para logging de requests
+// Middleware de log
 app.use((req, res, next) => {
   console.log(`${new Date().toISOString()} - ${req.method} ${req.path}`);
   next();
 });
 
-// Convertir el Excel a JSON en memoria al iniciar (mejor performance)
+// Cargar datos del Excel con filtro por Mostrar = "si"
 let productosData = [];
 try {
   const filePath = path.join(__dirname, 'precios_colchones.xlsx');
   console.log("Cargando datos desde:", filePath);
-  
+
   const workbook = xlsx.readFile(filePath);
   const sheetName = workbook.SheetNames[0];
-  productosData = xlsx.utils.sheet_to_json(workbook.Sheets[sheetName]);
-  
-  console.log(`✅ Datos precargados: ${productosData.length} productos`);
+  productosData = xlsx.utils.sheet_to_json(workbook.Sheets[sheetName])
+    .filter(p => (p.Mostrar || '').toString().trim().toLowerCase() === 'si');
+
+  console.log(`✅ Datos cargados: ${productosData.length} productos visibles`);
 } catch (error) {
   console.error("❌ Error al cargar el archivo Excel:", error);
   process.exit(1);
 }
 
-// Ruta de prueba
+// Test
 app.get('/test', (req, res) => {
-  res.json({ 
+  res.json({
     status: 'success',
     message: "API funcionando correctamente",
     timestamp: new Date().toISOString(),
@@ -53,36 +54,35 @@ app.get('/test', (req, res) => {
   });
 });
 
-// Ruta principal de productos
+// Endpoint principal
 app.get('/api/productos', (req, res) => {
   try {
     const { categoria, limite } = req.query;
     let data = [...productosData];
-    
+
     if (categoria) {
       data = data.filter(p => p.Categoria === categoria);
     }
-    
+
     if (limite && !isNaN(limite)) {
       data = data.slice(0, Number(limite));
     }
-    
+
     res.json({
       status: 'success',
       results: data.length,
       data
     });
-    
+
   } catch (error) {
     console.error("Error en /api/productos:", error);
-    res.status(500).json({ 
+    res.status(500).json({
       status: 'error',
       message: "Error interno del servidor"
     });
   }
 });
 
-// Manejo de errores 404
 app.use((req, res) => {
   res.status(404).json({
     status: 'fail',
@@ -90,7 +90,6 @@ app.use((req, res) => {
   });
 });
 
-// Puerto desde variable de entorno o 4000 por defecto
 const PORT = process.env.PORT || 4000;
 app.listen(PORT, () => {
   console.log(`\n=== SERVIDOR ACTIVO ===`);
