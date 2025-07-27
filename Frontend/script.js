@@ -6,23 +6,19 @@ document.addEventListener('DOMContentLoaded', async () => {
         : 'https://colchonqn.onrender.com/api';
 
     try {
-        // 1. Cargar productos desde el servidor
         const productosResponse = await fetch(`${API_URL}/productos`);
         if (!productosResponse.ok) throw new Error(`Error HTTP: ${productosResponse.status}`);
 
-        // LOG para depuración
-        console.log('Respuesta productos:', productosResponse);
-
         const json = await productosResponse.json();
-        console.log('JSON productos:', json);
 
         if (!json.data || !Array.isArray(json.data)) {
             throw new Error('La respuesta no contiene productos');
         }
 
-        const productos = json.data;
+        // Filtrar solo productos con Mostrar === 'si'
+        const productos = json.data.filter(p => p.Mostrar && p.Mostrar.toLowerCase() === 'si');
 
-        // 2. Inicializar componentes
+        // Inicializar componentes
         initCarousel();
         mostrarProductosDestacados(productos);
         mostrarCategorias(productos);
@@ -38,9 +34,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 });
 
-// ========== SPINNER ==========
-// ... (mantén igual)
-
 function mostrarSpinner() {
     const spinner = document.createElement('div');
     spinner.id = 'spinner-carga';
@@ -54,9 +47,6 @@ function mostrarSpinner() {
 function ocultarSpinner() {
     document.getElementById('spinner-carga')?.remove();
 }
-
-// ========== CARRUSEL ==========
-// ... (mantén igual)
 
 function initCarousel() {
     const carousel = document.querySelector('.carousel-inner');
@@ -111,8 +101,6 @@ function initCarousel() {
     startAutoPlay();
 }
 
-// ========== PRODUCTOS DESTACADOS ==========
-
 function mostrarProductosDestacados(productos) {
     const contenedor = document.querySelector('.productos-destacados');
     if (!contenedor) return;
@@ -120,21 +108,27 @@ function mostrarProductosDestacados(productos) {
     const destacados = [...productos]
         .sort(() => 0.5 - Math.random())
         .slice(0, 4)
-        .map(producto => `
-            <div class="producto-destacado">
-                <div class="producto-destacado-img" 
-                     style="background-image: url('${producto.Imagen || `https://via.placeholder.com/300x200?text=${encodeURIComponent(producto.Nombre.substring(0, 20))}`}')">
-                    <span class="etiqueta-oferta">OFERTA</span>
-                </div>
-                <div class="producto-destacado-info">
-                    <h3>${producto.Nombre.substring(0, 30)}${producto.Nombre.length > 30 ? '...' : ''}</h3>
-                    <div class="precio">
-                        ${producto.Precio != null ? `$${producto.Precio.toLocaleString('es-AR')}` : 'N/A'}
+        .map(producto => {
+            const urlImagen = producto.Imagen || `https://via.placeholder.com/300x200?text=${encodeURIComponent(producto.Nombre.substring(0, 20))}`;
+            const urlLink = producto.Link || null;
+
+            const imagenHTML = urlLink
+                ? `<a href="${urlLink}" target="_blank" rel="noopener noreferrer"><div class="producto-destacado-img" style="background-image: url('${urlImagen}')"><span class="etiqueta-oferta">OFERTA</span></div></a>`
+                : `<div class="producto-destacado-img" style="background-image: url('${urlImagen}')"><span class="etiqueta-oferta">OFERTA</span></div>`;
+
+            return `
+                <div class="producto-destacado">
+                    ${imagenHTML}
+                    <div class="producto-destacado-info">
+                        <h3>${producto.Nombre.substring(0, 30)}${producto.Nombre.length > 30 ? '...' : ''}</h3>
+                        <div class="precio">
+                            ${producto.Precio != null ? `$${producto.Precio.toLocaleString('es-AR')}` : 'N/A'}
+                        </div>
+                        <button class="btn ver-detalle" data-nombre="${encodeURIComponent(producto.Nombre)}">Ver Detalle</button>
                     </div>
-                    <button class="btn ver-detalle" data-nombre="${encodeURIComponent(producto.Nombre)}">Ver Detalle</button>
                 </div>
-            </div>
-        `).join('');
+            `;
+        }).join('');
 
     contenedor.innerHTML = destacados;
 
@@ -144,8 +138,6 @@ function mostrarProductosDestacados(productos) {
         }
     });
 }
-
-// ========== CATEGORÍAS ==========
 
 function mostrarCategorias(productos) {
     const contenedor = document.querySelector('.categorias-grid');
@@ -158,7 +150,6 @@ function mostrarCategorias(productos) {
         categorias.map(cat => `<option value="${cat}">${cat}</option>`).join('');
 
     contenedor.innerHTML = categorias.slice(0, 4).map(categoria => {
-        // Buscar imagen para categoría (busca primer producto que la tenga)
         const productoCat = productos.find(p => p.Categoria === categoria && p.Imagen);
         const imagenCat = productoCat ? productoCat.Imagen : `https://via.placeholder.com/300x200?text=${encodeURIComponent(categoria)}`;
 
@@ -178,8 +169,6 @@ function mostrarCategorias(productos) {
         if (card) filtrarPorCategoria(card.dataset.categoria);
     });
 }
-
-// ========== MOSTRAR PRODUCTOS ==========
 
 function mostrarProductos(productos, filtros = {}) {
     const contenedor = document.getElementById('contenedor-productos');
@@ -208,21 +197,30 @@ function mostrarProductos(productos, filtros = {}) {
     }
 
     contenedor.innerHTML = resultados.length > 0 ?
-        resultados.map(producto => `
-            <div class="producto-card">
-                <div class="producto-header">
-                    <h4>${producto.Nombre}</h4>
-                    <span class="precio">${producto.Precio != null ? `$${producto.Precio.toLocaleString('es-AR')}` : 'N/A'}</span>
+        resultados.map(producto => {
+            const urlImagen = producto.Imagen || `https://via.placeholder.com/200x150?text=Sin+imagen`;
+            const urlLink = producto.Link || null;
+
+            const imagenHTML = urlLink
+                ? `<a href="${urlLink}" target="_blank" rel="noopener noreferrer"><img src="${urlImagen}" alt="${producto.Nombre}"></a>`
+                : `<img src="${urlImagen}" alt="${producto.Nombre}">`;
+
+            return `
+                <div class="producto-card">
+                    <div class="producto-header">
+                        <h4>${producto.Nombre}</h4>
+                        <span class="precio">${producto.Precio != null ? `$${producto.Precio.toLocaleString('es-AR')}` : 'N/A'}</span>
+                    </div>
+                    <div class="etiquetas">
+                        <span class="categoria">${producto.Categoria || 'Sin categoría'}</span>
+                    </div>
+                    <div class="producto-img">
+                        ${imagenHTML}
+                    </div>
+                    <button class="btn ver-detalle" data-nombre="${encodeURIComponent(producto.Nombre)}">Ver Detalle</button>
                 </div>
-                <div class="etiquetas">
-                    <span class="categoria">${producto.Categoria || 'Sin categoría'}</span>
-                </div>
-                <div class="producto-img">
-                    <img src="${producto.Imagen || `https://via.placeholder.com/200x150?text=Sin+imagen`}" alt="${producto.Nombre}">
-                </div>
-                <button class="btn ver-detalle" data-nombre="${encodeURIComponent(producto.Nombre)}">Ver Detalle</button>
-            </div>
-        `).join('') :
+            `;
+        }).join('') :
         `<div class="no-resultados">
             <h3>No se encontraron productos</h3>
             <p>Intenta con otros criterios de búsqueda</p>
@@ -235,9 +233,6 @@ function mostrarProductos(productos, filtros = {}) {
     });
 }
 
-// ========== FORMULARIO ==========
-// (Mantener igual)
-
 function setupFormularioContacto() {
     const formulario = document.getElementById('formulario-contacto');
     if (!formulario) return;
@@ -249,7 +244,6 @@ function setupFormularioContacto() {
         const data = Object.fromEntries(formData.entries());
 
         try {
-            console.log('Datos del formulario:', data);
             alert(`Gracias ${data.nombre}, tu mensaje ha sido enviado. Te responderemos a ${data.email} pronto.`);
             formulario.reset();
         } catch (error) {
@@ -258,9 +252,6 @@ function setupFormularioContacto() {
         }
     });
 }
-
-// ========== FILTROS ==========
-// (Mantener igual)
 
 function setupFiltros(productos) {
     const filtroCategoria = document.getElementById('filtro-categoria');
@@ -274,9 +265,6 @@ function setupFiltros(productos) {
     busqueda.addEventListener('input', e => { estadoFiltros.busqueda = e.target.value; aplicarFiltros(); });
     orden.addEventListener('change', e => { estadoFiltros.orden = e.target.value; aplicarFiltros(); });
 }
-
-// ========== FUNCIONES AUXILIARES ==========
-// (Mantener igual)
 
 function filtrarPorCategoria(categoria) {
     const filtro = document.getElementById('filtro-categoria');
