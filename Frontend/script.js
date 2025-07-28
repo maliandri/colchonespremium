@@ -14,7 +14,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         const productos = json.data.filter(p => p.Mostrar && p.Mostrar.toLowerCase() === 'si');
 
         renderProductos(productos);
-
         setupFiltros(productos);
         setupBusqueda(productos);
         setupOrden(productos);
@@ -39,7 +38,7 @@ function renderProductos(productos) {
     contenedor.innerHTML = productos.map(p => `
         <div class="producto-card">
             <div class="producto-img">
-                <img src="${p.Imagen || 'https://via.placeholder.com/200x150?text=Sin+imagen'}" alt="${p.Nombre}" />
+                <img src="${p.Imagen?.trim() || 'assets/sin-imagen.jpg'}" alt="${p.Nombre}" />
             </div>
             <div class="producto-info">
                 <h3 class="producto-nombre">${p.Nombre}</h3>
@@ -53,28 +52,19 @@ function renderProductos(productos) {
 function setupFiltros(productos) {
     const filtro = document.getElementById('filtro-categoria');
     if (!filtro) return;
-
-    filtro.addEventListener('change', () => {
-        filtrarYMostrar(productos);
-    });
+    filtro.addEventListener('change', () => filtrarYMostrar(productos));
 }
 
 function setupBusqueda(productos) {
     const busqueda = document.getElementById('busqueda');
     if (!busqueda) return;
-
-    busqueda.addEventListener('input', () => {
-        filtrarYMostrar(productos);
-    });
+    busqueda.addEventListener('input', () => filtrarYMostrar(productos));
 }
 
 function setupOrden(productos) {
     const orden = document.getElementById('orden');
     if (!orden) return;
-
-    orden.addEventListener('change', () => {
-        filtrarYMostrar(productos);
-    });
+    orden.addEventListener('change', () => filtrarYMostrar(productos));
 }
 
 function filtrarYMostrar(productos) {
@@ -82,7 +72,7 @@ function filtrarYMostrar(productos) {
     const busqueda = document.getElementById('busqueda').value.toLowerCase();
     const orden = document.getElementById('orden').value;
 
-    let resultados = productos;
+    let resultados = [...productos];
 
     if (filtro) {
         resultados = resultados.filter(p => p.Categoria && p.Categoria.toLowerCase() === filtro);
@@ -109,3 +99,4 @@ function filtrarYMostrar(productos) {
 
     renderProductos(resultados);
 }
+
