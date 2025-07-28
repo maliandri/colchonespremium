@@ -1,200 +1,130 @@
-<!DOCTYPE html>
+<!<!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Colchones Premium - Descanso de Calidad</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="styles.css">
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Productos y Categorías Dinámicas</title>
+    <style>
+        /* Estilos básicos para que se vea ordenado */
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        .categorias-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit,minmax(150px,1fr));
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+        .categoria-card {
+            position: relative;
+            cursor: pointer;
+            overflow: hidden;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgb(0 0 0 / 0.1);
+            transition: transform 0.2s;
+        }
+        .categoria-card:hover {
+            transform: scale(1.05);
+        }
+        .categoria-img img {
+            width: 100%;
+            height: 120px;
+            object-fit: cover;
+            display: block;
+        }
+        .categoria-overlay {
+            position: absolute;
+            bottom: 0;
+            width: 100%;
+            color: white;
+            background: rgba(0,0,0,0.5);
+            padding: 6px;
+            text-align: center;
+            font-weight: bold;
+        }
+        /* Productos */
+        #contenedor-productos {
+            display: grid;
+            grid-template-columns: repeat(auto-fit,minmax(220px,1fr));
+            gap: 20px;
+        }
+        .producto-card {
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            padding: 10px;
+            box-shadow: 0 2px 5px rgb(0 0 0 / 0.1);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            background: #fff;
+        }
+        .producto-img img {
+            width: 100%;
+            max-height: 140px;
+            object-fit: contain;
+            margin-bottom: 10px;
+        }
+        .producto-nombre {
+            margin: 0 0 5px;
+            font-size: 1.1em;
+            text-align: center;
+        }
+        .producto-categoria, .producto-precio {
+            font-size: 0.9em;
+            color: #555;
+        }
+        /* Controles filtro */
+        .controles {
+            margin-bottom: 20px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            align-items: center;
+        }
+        select, input[type="search"] {
+            padding: 6px 10px;
+            font-size: 1em;
+            border-radius: 4px;
+            border: 1px solid #aaa;
+        }
+        label {
+            font-weight: bold;
+        }
+    </style>
 </head>
 <body>
-    <!-- Header/Navbar -->
-    <header>
-        <div class="container">
-            <nav>
-                <a href="#" class="logo">ColchonesPremium</a>
-                <div class="nav-links">
-                    <a href="#inicio">Inicio</a>
-                    <a href="#productos">Productos</a>
-                    <a href="#categorias">Categorías</a>
-                    <a href="#nosotros">Quiénes Somos</a>
-                    <a href="#contacto">Contacto</a>
-                </div>
-                <div class="mobile-menu-btn">
-                    <i class="fas fa-bars"></i>
-                </div>
-            </nav>
-        </div>
-    </header>
 
-    <!-- Sección de Categorías -->
-    <section id="categorias" class="section-light">
-        <div class="container">
-            <h2 class="section-title">Nuestras Categorías</h2>
-            <div class="categorias-grid">
-                <div class="categoria-card">
-                    <div class="categoria-img">
-                        <img src="assets/categoria1.jpg" alt="Memory Foam">
-                    </div>
-                    <div class="categoria-overlay">Memory Foam</div>
-                </div>
-                <div class="categoria-card">
-                    <div class="categoria-img">
-                        <img src="assets/categoria2.jpg" alt="Resortes">
-                    </div>
-                    <div class="categoria-overlay">Resortes</div>
-                </div>
-                <div class="categoria-card">
-                    <div class="categoria-img">
-                        <img src="assets/categoria3.jpg" alt="Híbridos">
-                    </div>
-                    <div class="categoria-overlay">Híbridos</div>
-                </div>
-                <div class="categoria-card">
-                    <div class="categoria-img">
-                        <img src="assets/categoria4.jpg" alt="Infantiles">
-                    </div>
-                    <div class="categoria-overlay">Infantiles</div>
-                </div>
-            </div>
-        </div>
+    <h1>Catálogo de Productos</h1>
+
+    <section>
+        <h2 class="section-title">Nuestras Categorías</h2>
+        <div class="categorias-grid"></div>
     </section>
 
-    <!-- Sección de Productos -->
-    <section id="productos">
-        <div class="container">
-            <h2 class="section-title">Nuestros Productos</h2>
-            <div class="filtros">
-                <select id="filtro-categoria">
-                    <option value="">Todas las categorías</option>
-                    <option value="memory">Memory Foam</option>
-                    <option value="resortes">Resortes</option>
-                    <option value="hibrido">Híbridos</option>
-                    <option value="infantil">Infantiles</option>
-                </select>
-                <input type="text" id="busqueda" placeholder="Buscar productos...">
-                <select id="orden">
-                    <option value="nombre-asc">Nombre (A-Z)</option>
-                    <option value="nombre-desc">Nombre (Z-A)</option>
-                    <option value="precio-asc">Precio (Menor a Mayor)</option>
-                    <option value="precio-desc">Precio (Mayor a Menor)</option>
-                </select>
-            </div>
-            <div id="contenedor-productos" class="productos-grid">
-                <!-- Los productos se cargarán aquí con JavaScript -->
-            </div>
+    <section>
+        <div class="controles">
+            <label for="filtro-categoria">Filtrar por categoría:</label>
+            <select id="filtro-categoria">
+                <option value="">Todas las categorías</option>
+            </select>
+
+            <label for="busqueda">Buscar:</label>
+            <input type="search" id="busqueda" placeholder="Buscar por nombre" />
+
+            <label for="orden">Ordenar por:</label>
+            <select id="orden">
+                <option value="nombre-asc">Nombre ↑</option>
+                <option value="nombre-desc">Nombre ↓</option>
+                <option value="precio-asc">Precio ↑</option>
+                <option value="precio-desc">Precio ↓</option>
+            </select>
+        </div>
+
+        <div id="contenedor-productos">
+            <!-- Productos se renderizan aquí -->
         </div>
     </section>
-
-    <!-- Sección de Beneficios -->
-    <section class="beneficios section-dark">
-        <div class="container">
-            <div class="beneficios-grid">
-                <div class="beneficio-item">
-                    <i class="fas fa-truck"></i>
-                    <h3>Envío Gratis</h3>
-                    <p>En compras superiores a $500.000</p>
-                </div>
-                <div class="beneficio-item">
-                    <i class="fas fa-credit-card"></i>
-                    <h3>15%off</h3>
-                    <p>en toda tu compra</p>
-                </div>
-                <div class="beneficio-item">
-                    <i class="fas fa-shield-alt"></i>
-                    <h3>Garantía</h3>
-                    <p>10 años en todos nuestros colchones</p>
-                </div>
-                <div class="beneficio-item">
-                    <i class="fas fa-exchange-alt"></i>
-                    <h3>Cambios</h3>
-                    <p>Hasta 30 días después de la compra</p>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- Quiénes Somos -->
-    <section id="nosotros" class="section-light">
-        <div class="container">
-            <h2 class="section-title">Quiénes Somos</h2>
-            <div class="about-content">
-                <div class="about-text">
-                    <p>Somos una empresa familiar con más de 20 años de experiencia en el rubro del descanso. Nuestra misión es brindar productos de la más alta calidad que mejoren la vida de nuestros clientes.</p>
-                    <p>Todos nuestros productos están fabricados con materiales premium y tecnología de última generación para garantizar el mejor descanso.</p>
-                </div>
-                <div class="about-image">
-                    <img src="assets/nuestra-tienda.jpg" alt="Nuestra tienda">
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- Contacto -->
-    <section id="contacto" class="section-dark">
-        <div class="container">
-            <h2 class="section-title">Contacto</h2>
-            <div class="contact-container">
-                <div class="contact-info">
-                    <h3>Información de contacto</h3>
-                    <p><i class="fas fa-map-marker-alt"></i> Av. Principal 1234, Ciudad</p>
-                    <p><i class="fas fa-phone"></i> (011) 1234-5678</p>
-                    <p><i class="fas fa-envelope"></i> info@colchonespremium.com</p>
-                    <div class="social-links">
-                        <a href="#"><i class="fab fa-facebook-f"></i></a>
-                        <a href="#"><i class="fab fa-instagram"></i></a>
-                        <a href="#"><i class="fab fa-whatsapp"></i></a>
-                    </div>
-                </div>
-                <div class="contact-form">
-                    <form id="formulario-contacto">
-                        <div class="form-group">
-                            <input type="text" id="nombre" placeholder="Nombre" required>
-                        </div>
-                        <div class="form-group">
-                            <input type="email" id="email" placeholder="Email" required>
-                        </div>
-                        <div class="form-group">
-                            <input type="tel" id="telefono" placeholder="Teléfono">
-                        </div>
-                        <div class="form-group">
-                            <textarea id="mensaje" placeholder="Mensaje" rows="5" required></textarea>
-                        </div>
-                        <button type="submit" class="btn">Enviar Mensaje</button>
-                    </form>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- Footer -->
-    <footer>
-        <div class="container">
-            <div class="footer-content">
-                <div class="footer-section">
-                    <h3>ColchonesPremium</h3>
-                    <p>Tu tienda de confianza para el mejor descanso.</p>
-                </div>
-                <div class="footer-section">
-                    <h3>Enlaces</h3>
-                    <ul>
-                        <li><a href="#inicio">Inicio</a></li>
-                        <li><a href="#productos">Productos</a></li>
-                        <li><a href="#nosotros">Nosotros</a></li>
-                        <li><a href="#contacto">Contacto</a></li>
-                    </ul>
-                </div>
-                <div class="footer-section">
-                    <h3>Horarios</h3>
-                    <p>Lunes a Viernes: 9:00 - 18:00</p>
-                    <p>Sábados: 9:00 - 13:00</p>
-                </div>
-            </div>
-            <div class="footer-bottom">
-                <p>&copy; 2025 ColchonesPremium. Todos los derechos reservados.</p>
-            </div>
-        </div>
-    </footer>
 
     <script src="script.js"></script>
 </body>
