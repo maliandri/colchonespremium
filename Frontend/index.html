@@ -11,13 +11,21 @@
 <body>
     <header>
         <div class="header-container">
+            <div class="logo">
+            <img src="assets/logo.png" alt="Colchones Premium" class="logo-img">
+        </div>
             <div class="logo">Colchones<span>Premium</span></div>
             <nav class="main-nav">
                 <ul>
                     <li><a href="#">Inicio</a></li>
                     <li><a href="#productos">Productos</a></li>
                     <li><a href="#">Contacto</a></li>
-                    <li><a href="#"><i class="fas fa-shopping-cart"></i></a></li>
+                    <li>
+                        <a href="#">
+                            <i class="fas fa-shopping-cart cart-icon"></i>
+                            <span class="cart-count">0</span>
+                        </a>
+                    </li>
                 </ul>
             </nav>
         </div>
@@ -26,6 +34,7 @@
     <section class="hero">
         <h1>Descanso de Calidad para tu Hogar</h1>
         <p>Encuentra los mejores colchones y almohadas para tu descanso</p>
+        <a href="#productos" class="btn">Ver Productos</a>
     </section>
 
     <main>
@@ -33,15 +42,20 @@
             <h2 class="section-title">Nuestros Productos</h2>
             <div class="filtros">
                 <div class="search-box">
-                    <input type="text" placeholder="Buscar productos...">
+                    <input type="text" placeholder="Buscar productos..." id="searchInput">
+                </div>
+                <div class="filtros-row">
                     <select id="categoria">
                         <option value="">Todas las categorías</option>
                     </select>
+                    <select id="orden">
+                        <option value="">Ordenar por</option>
+                        <option value="asc">Precio: Menor a Mayor</option>
+                        <option value="desc">Precio: Mayor a Menor</option>
+                    </select>
                 </div>
             </div>
-            <div class="productos" id="productos">
-                <!-- Productos cargados dinámicamente -->
-            </div>
+            <div class="productos" id="productos-grid"></div>
         </section>
     </main>
 
@@ -69,6 +83,14 @@
                     <li>Lunes a Viernes: 9-18hs</li>
                     <li>Sábados: 9-13hs</li>
                 </ul>
+            </div>
+            <div class="footer-section">
+                <h3>Redes Sociales</h3>
+                <div class="social-icons">
+                    <a href="#"><i class="fab fa-facebook-f"></i></a>
+                    <a href="#"><i class="fab fa-instagram"></i></a>
+                    <a href="#"><i class="fab fa-whatsapp"></i></a>
+                </div>
             </div>
         </div>
         <div class="copyright">
