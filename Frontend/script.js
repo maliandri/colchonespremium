@@ -29,11 +29,11 @@ document.addEventListener('DOMContentLoaded', function() {
     `;
   };
 
-  const mostrarError = () => {
+  const mostrarError = (mensaje = 'Error al cargar los productos. Intenta recargar la página.') => {
     productosGrid.innerHTML = `
       <p class="error">
         <i class="fas fa-exclamation-triangle"></i>
-        Error al cargar los productos. Intenta recargar la página.
+        ${mensaje}
       </p>
     `;
   };
@@ -58,22 +58,56 @@ document.addEventListener('DOMContentLoaded', function() {
   const cargarProductos = async () => {
     try {
       mostrarCargando();
-      const response = await fetch(API_URL);
-      if (!response.ok) throw new Error(`Error HTTP: ${response.status}`);
       
+      // Limpiar caché del navegador para forzar nueva carga
+      const response = await fetch(API_URL + '?t=' + new Date().getTime());
+      
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.message || `Error HTTP: ${response.status}`);
+      }
+      
+      const contentType = response.headers.get('content-type');
+      if (!contentType || !contentType.includes('application/json')) {
+        throw new TypeError("La respuesta no es JSON");
+      }
+
       productosOriginales = await response.json();
-      mostrarProductos(productosOriginales);
+      
+      // Verificar estructura de datos
+      if (!Array.isArray(productosOriginales)) {
+        throw new Error("Formato de datos inválido");
+      }
+      
+      // Filtrar productos válidos
+      const productosValidos = productosOriginales.filter(p => 
+        p.Mostrar?.toLowerCase() === 'si' && 
+        p.Imagen?.trim() && 
+        p.Nombre?.trim()
+      );
+      
+      if (productosValidos.length === 0) {
+        mostrarError("No hay productos disponibles para mostrar");
+        return;
+      }
+      
+      mostrarProductos(productosValidos);
       cargarCategorias();
       cargarCategoriasVendedor();
+      
     } catch (error) {
       console.error("Error al cargar productos:", error);
-      mostrarError();
+      mostrarError(error.message);
     }
   };
 
   const cargarCategorias = () => {
     categoriaSelect.innerHTML = '<option value="">Todas las categorías</option>';
-    [...new Set(productosOriginales.map(p => p.Categoria))].forEach(categoria => {
+    const categoriasUnicas = [...new Set(productosOriginales
+      .map(p => p.Categoria)
+      .filter(Boolean))];
+    
+    categoriasUnicas.forEach(categoria => {
       const option = document.createElement('option');
       option.value = categoria;
       option.textContent = categoria;
@@ -83,7 +117,11 @@ document.addEventListener('DOMContentLoaded', function() {
 
   const cargarCategoriasVendedor = () => {
     filtroCategoriaVendedor.innerHTML = '<option value="">Todas las categorías</option>';
-    [...new Set(productosOriginales.map(p => p.Categoria))].forEach(categoria => {
+    const categoriasUnicas = [...new Set(productosOriginales
+      .map(p => p.Categoria)
+      .filter(Boolean))];
+    
+    categoriasUnicas.forEach(categoria => {
       const option = document.createElement('option');
       option.value = categoria;
       option.textContent = categoria;
@@ -99,24 +137,67 @@ document.addEventListener('DOMContentLoaded', function() {
       const productoElement = document.createElement('div');
       productoElement.className = 'producto';
       productoElement.style.animationDelay = `${index * 0.1}s`;
+      
+      // Manejo seguro de la imagen
+      const imagenUrl = producto.Imagen.trim();
+      const imagenAlt = producto.Nombre.trim() || 'Producto sin nombre';
+      
       productoElement.innerHTML = `
         <div class="producto-imagen-container">
-          <img src="${producto.Imagen}" alt="${producto.Nombre}" loading="lazy">
+          <img src="${imagenUrl}" 
+               alt="${imagenAlt}" 
+               loading="lazy"
+               onerror="this.onerror=null;this.src='https://via.placeholder.com/300?text=Imagen+no+disponible'">
         </div>
         <div class="producto-info">
-          <h3>${producto.Nombre}</h3>
-          <p>${producto.Marca}</p>
-          <p>$${parseInt(producto.Precio).toLocaleString('es-AR')}</p>
-          <span>${producto.Categoria}</span>
+          <h3>${producto.Nombre || 'Sin nombre'}</h3>
+          <p>${producto.Marca || 'Sin marca'}</p>
+          <p>$${parseInt(producto.Precio || 0).toLocaleString('es-AR')}</p>
+          <span>${producto.Categoria || 'Sin categoría'}</span>
           <button class="btn-comprar" data-id="${producto._id}">Agregar al carrito</button>
         </div>
       `;
+      
       productosGrid.appendChild(productoElement);
     });
 
+    // Agregar eventos a los botones
     document.querySelectorAll('.btn-comprar').forEach(btn => {
       btn.addEventListener('click', agregarAlCarrito);
     });
+  };
+
+  // ===== FUNCIONES DEL CARRITO =====
+  const agregarAlCarrito = (e) => {
+    const productoId = e.target.getAttribute('data-id');
+    const producto = productosOriginales.find(p => p._id === productoId);
+    
+    if (!producto) {
+      mostrarNotificacion('Producto no encontrado', 'error');
+      return;
+    }
+    
+    const itemExistente = carrito.find(item => item.id === productoId);
+    
+    if (itemExistente) {
+      itemExistente.cantidad += 1;
+    } else {
+      carrito.push({
+        id: productoId,
+        nombre: producto.Nombre,
+        precio: producto.Precio,
+        cantidad: 1,
+        imagen: producto.Imagen
+      });
+    }
+    
+    actualizarCarrito();
+    mostrarNotificacion(`${producto.Nombre} agregado al carrito`);
+  };
+
+  const actualizarCarrito = () => {
+    cartCount.textContent = carrito.reduce((total, item) => total + item.cantidad, 0);
+    // Aquí puedes agregar más lógica para actualizar el carrito si es necesario
   };
 
   // ===== SISTEMA DE VENDEDORES =====
@@ -135,9 +216,9 @@ document.addEventListener('DOMContentLoaded', function() {
     productos.forEach(producto => {
       lista.innerHTML += `
         <div class="producto-vendedor">
-          <h4>${producto.Nombre}</h4>
-          <p>Marca: ${producto.Marca}</p>
-          <p>Precio: $${producto.Precio}</p>
+          <h4>${producto.Nombre || 'Sin nombre'}</h4>
+          <p>Marca: ${producto.Marca || 'Sin marca'}</p>
+          <p>Precio: $${parseInt(producto.Precio || 0).toLocaleString('es-AR')}</p>
           <div class="cantidad-control">
             <button class="restar" data-id="${producto._id}">-</button>
             <input type="number" value="0" min="0" class="cantidad" data-id="${producto._id}">
@@ -187,7 +268,8 @@ document.addEventListener('DOMContentLoaded', function() {
         id: productoId,
         nombre: producto.Nombre,
         precio: producto.Precio,
-        cantidad: cantidad
+        cantidad: cantidad,
+        imagen: producto.Imagen
       });
     }
 
@@ -218,7 +300,7 @@ document.addEventListener('DOMContentLoaded', function() {
     totalElement.textContent = total.toFixed(2);
   };
 
-  // ===== FUNCIONES NUEVAS PARA VENDEDORES =====
+  // ===== FUNCIONES PARA VENDEDORES =====
   const enviarPresupuesto = () => {
     const nombreVendedor = document.getElementById('nombreVendedor').value.trim();
     const nombreCliente = document.getElementById('nombreCliente').value.trim();
@@ -310,14 +392,14 @@ function aplicarFiltros() {
   let productosFiltrados = [...productosOriginales]
     .filter(p => 
       (!searchTerm || 
-       p.Nombre.toLowerCase().includes(searchTerm) || 
-       p.Marca.toLowerCase().includes(searchTerm) ||
-       p.Categoria.toLowerCase().includes(searchTerm)) &&
+       p.Nombre?.toLowerCase().includes(searchTerm) || 
+       p.Marca?.toLowerCase().includes(searchTerm) ||
+       p.Categoria?.toLowerCase().includes(searchTerm)) &&
       (!categoria || p.Categoria === categoria)
     );
 
-  if (orden === 'asc') productosFiltrados.sort((a, b) => a.Precio - b.Precio);
-  if (orden === 'desc') productosFiltrados.sort((a, b) => b.Precio - a.Precio);
+  if (orden === 'asc') productosFiltrados.sort((a, b) => (a.Precio || 0) - (b.Precio || 0));
+  if (orden === 'desc') productosFiltrados.sort((a, b) => (b.Precio || 0) - (a.Precio || 0));
 
   mostrarProductos(productosFiltrados);
 }
