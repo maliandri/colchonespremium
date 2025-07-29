@@ -8,6 +8,7 @@
     <link rel="stylesheet" href="styles.css">
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 </head>
 <body>
     <header>
@@ -67,7 +68,7 @@
         </section>
 
         <section id="contacto" class="contacto-container">
-            <!-- Aquí iría tu sección de contacto -->
+            <!-- Sección de contacto -->
         </section>
     </main>
 
@@ -110,42 +111,65 @@
         </div>
     </footer>
 
-    <!-- Modal para vendedores -->
+    <!-- Modal para vendedores - ACTUALIZADO -->
     <div id="modalVendedores" class="modal" aria-hidden="true" role="dialog" aria-labelledby="modalTitulo">
         <div class="modal-contenido">
             <button class="cerrar" aria-label="Cerrar modal">&times;</button>
             <h2 id="modalTitulo">Panel de Vendedores</h2>
             
-            <div class="form-group">
-                <label for="nombreVendedor">Nombre del Vendedor:</label>
-                <input type="text" id="nombreVendedor" class="form-input" required>
+            <!-- Sección 1: Datos -->
+            <div class="seccion-datos">
+                <div class="form-group">
+                    <label for="nombreVendedor">Vendedor:</label>
+                    <input type="text" id="nombreVendedor" class="form-input" required>
+                </div>
+                <div class="form-group">
+                    <label for="nombreCliente">Cliente:</label>
+                    <input type="text" id="nombreCliente" class="form-input" placeholder="Nombre y Apellido" required>
+                </div>
+                <div class="form-group">
+                    <label for="emailCliente">Email:</label>
+                    <input type="email" id="emailCliente" class="form-input" placeholder="cliente@email.com">
+                </div>
             </div>
-            
-            <div class="form-group">
-                <label for="nombreCliente">Cliente:</label>
-                <input type="text" id="nombreCliente" placeholder="Nombre y Apellido" class="form-input" required>
+
+            <!-- Sección 2: Productos -->
+            <div class="seccion-productos">
+                <h3>Productos</h3>
+                <div class="filtro-categoria">
+                    <select id="filtroCategoriaVendedor" class="form-input">
+                        <option value="">Todas las categorías</option>
+                    </select>
+                </div>
+                <div id="listaProductosVendedor" class="lista-productos"></div>
             </div>
-            
-            <div class="productos-lista">
-                <h3>Seleccionar Productos</h3>
-                <div id="listaProductosVendedor" class="lista-productos" role="region" aria-live="polite"></div>
-            </div>
-            
-            <div class="resumen-pedido">
-                <h3>Resumen del Pedido</h3>
-                <div id="detallePedido" role="region" aria-live="polite"></div>
+
+            <!-- Sección 3: Resumen -->
+            <div class="seccion-resumen">
+                <h3>Resumen</h3>
+                <div id="detallePedido" class="detalle-pedido"></div>
                 <div class="total-pedido">
                     <strong>Total: $<span id="totalPedido">0.00</span></strong>
                 </div>
             </div>
-            
-            <button id="finalizarPedido" class="btn">Finalizar Pedido</button>
+
+            <!-- Sección 4: Botones -->
+            <div class="seccion-botones">
+                <button id="enviarPresupuesto" class="btn btn-enviar">
+                    <i class="fas fa-paper-plane"></i> Enviar
+                </button>
+                <button id="descargarPresupuesto" class="btn btn-descargar">
+                    <i class="fas fa-file-pdf"></i> PDF
+                </button>
+                <button id="resetearPresupuesto" class="btn btn-resetear">
+                    <i class="fas fa-trash-alt"></i> Resetear
+                </button>
+            </div>
         </div>
     </div>
 
     <script src="script.js"></script>
     <script>
-        // Actualizar año automáticamente
         document.getElementById('current-year').textContent = new Date().getFullYear();
     </script>
 </body>
