@@ -103,16 +103,24 @@ document.addEventListener('DOMContentLoaded', function() {
       const div = document.createElement('div');
       div.className = 'producto-vendedor';
       div.innerHTML = `
-        <h4>${producto.Nombre}</h4>
-        <p>Marca: ${producto.Marca}</p>
-        <p>Precio: $${producto.Precio}</p>
-        <div class="cantidad-control">
-          <button class="restar" data-id="${producto._id}">-</button>
-          <input type="number" value="0" min="0" class="cantidad" data-id="${producto._id}">
-          <button class="sumar" data-id="${producto._id}">+</button>
-        </div>
-        <button class="btn-agregar" data-id="${producto._id}">Agregar al pedido</button>
-      `;
+  <h4>${producto.Nombre}</h4>
+  <p>Marca: ${producto.Marca}</p>
+  <p>Precio: $${producto.Precio}</p>
+  <div class="cantidad-control">
+    <button class="restar" data-id="${producto._id}">-</button>
+    <input 
+      type="number" 
+      value="0" 
+      min="0" 
+      class="cantidad" 
+      data-id="${producto._id}"
+      id="cantidad-${producto._id}"      <!-- Nuevo: id único -->
+      name="cantidad-${producto._id}"    <!-- Nuevo: name único -->
+    >
+    <button class="sumar" data-id="${producto._id}">+</button>
+  </div>
+  <button class="btn-agregar" data-id="${producto._id}">Agregar al pedido</button>
+`;
       lista.appendChild(div);
     });
 
