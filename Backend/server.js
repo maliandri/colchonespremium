@@ -15,9 +15,22 @@ const PORT = process.env.PORT || 3000;
 
 // Middlewares
 app.use(cors({
-  origin: ['https://colchonqn.netlify.app', 'http://localhost:5500'] // Agregar desarrollo local
+  origin: ['https://colchonqn.netlify.app', 'http://localhost:5500']
 }));
-app.use(express.json()); // Para futuros endpoints POST
+app.use(express.json());
+
+// Ruta raíz
+app.get('/', (req, res) => {
+  res.json({
+    message: "API de Colchones Premium",
+    endpoints: {
+      productos: "/api/colchones",
+      categorias: "/api/categorias",
+      presupuesto: "/api/enviar-presupuesto (POST)"
+    }
+  });
+});
+
 
 // Cache de productos (mejora rendimiento)
 let cacheProductos = null;
