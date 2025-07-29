@@ -281,20 +281,18 @@ header {
 }
 
 .producto-imagen-container {
-  position: relative;
-  padding-top: 75%;
+  aspect-ratio: 4 / 3; /* o la proporción deseada */
   overflow: hidden;
   background: #f5f5f5;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .producto-imagen {
-  position: absolute;
-  top: 0;
-  left: 0;
   width: 100%;
   height: 100%;
   object-fit: contain;
-  transition: transform 0.3s;
 }
 
 .producto:hover .producto-imagen {
