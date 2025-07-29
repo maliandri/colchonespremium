@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Tienda especializada en colchones y almohadas premium en Neuquén">
     <title>Colchones Premium Neuquén - Calidad en Descanso</title>
     <link rel="stylesheet" href="styles.css">
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
@@ -11,18 +12,20 @@
 <body>
     <header>
         <div class="header-container container">
-            <a href="#" class="logo">
-                <img src="assets/logo.png" alt="Colchones Premium" class="logo-img">
+            <a href="#" class="logo" aria-label="Inicio - Colchones Premium">
+                <img src="assets/logo.png" alt="Logo Colchones Premium" class="logo-img">
                 <span class="logo-text">Colchones<span>Premium</span></span>
             </a>
-            <nav class="main-nav">
+            <nav class="main-nav" aria-label="Navegación principal">
                 <ul>
-                    <li><a href="#">Inicio</a></li>
+                    <li><a href="#" aria-current="page">Inicio</a></li>
                     <li><a href="#productos">Productos</a></li>
-                    <li><a href="#">Contacto</a></li>
-                    <li><a href="#" class="vendedores-link">Acceso Vendedores</a></li>
+                    <li><a href="#contacto">Contacto</a></li>
+                    <li><a href="#" class="vendedores-link" id="accesoVendedores">
+                        <i class="fas fa-user-tie"></i> Acceso Vendedores
+                    </a></li>
                     <li>
-                        <a href="#">
+                        <a href="#" aria-label="Carrito de compras">
                             <i class="fas fa-shopping-cart cart-icon"></i>
                             <span class="cart-count">0</span>
                         </a>
@@ -32,31 +35,39 @@
         </div>
     </header>
 
-    <section class="hero">
-        <h1>Descanso de Calidad para tu Hogar</h1>
-        <p>Encuentra los mejores colchones y almohadas para tu descanso</p>
-        <a href="#productos" class="btn">Ver Productos</a>
-    </section>
-
     <main>
-        <section id="productos" class="productos-container">
-            <h2 class="section-title">Nuestros Productos</h2>
-            <div class="filtros">
-                <div class="search-box">
-                    <input type="text" placeholder="Buscar productos..." id="searchInput">
-                </div>
-                <div class="filtros-row">
-                    <select id="categoria">
-                        <option value="">Todas las categorías</option>
-                    </select>
-                    <select id="orden">
-                        <option value="">Ordenar por</option>
-                        <option value="asc">Precio: Menor a Mayor</option>
-                        <option value="desc">Precio: Mayor a Menor</option>
-                    </select>
-                </div>
+        <section class="hero">
+            <div class="container">
+                <h1>Descanso de Calidad para tu Hogar</h1>
+                <p>Encuentra los mejores colchones y almohadas para tu descanso</p>
+                <a href="#productos" class="btn">Ver Productos</a>
             </div>
-            <div class="productos" id="productos-grid"></div>
+        </section>
+
+        <section id="productos" class="productos-container">
+            <div class="container">
+                <h2 class="section-title">Nuestros Productos</h2>
+                <div class="filtros">
+                    <div class="search-box">
+                        <input type="text" placeholder="Buscar productos..." id="searchInput" aria-label="Buscar productos">
+                    </div>
+                    <div class="filtros-row">
+                        <select id="categoria" aria-label="Filtrar por categoría">
+                            <option value="">Todas las categorías</option>
+                        </select>
+                        <select id="orden" aria-label="Ordenar productos">
+                            <option value="">Ordenar por</option>
+                            <option value="asc">Precio: Menor a Mayor</option>
+                            <option value="desc">Precio: Mayor a Menor</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="productos" id="productos-grid" role="region" aria-live="polite"></div>
+            </div>
+        </section>
+
+        <section id="contacto" class="contacto-container">
+            <!-- Aquí iría tu sección de contacto -->
         </section>
     </main>
 
@@ -65,9 +76,9 @@
             <div class="footer-section">
                 <h3>Productos</h3>
                 <ul>
-                    <li><a href="#">Colchones</a></li>
-                    <li><a href="#">Almohadas</a></li>
-                    <li><a href="#">Sommiers</a></li>
+                    <li><a href="#productos">Colchones</a></li>
+                    <li><a href="#productos">Almohadas</a></li>
+                    <li><a href="#productos">Sommiers</a></li>
                 </ul>
             </div>
             <div class="footer-section">
@@ -88,41 +99,41 @@
             <div class="footer-section">
                 <h3>Redes Sociales</h3>
                 <div class="social-icons">
-                    <a href="#"><i class="fab fa-facebook-f"></i></a>
-                    <a href="#"><i class="fab fa-instagram"></i></a>
-                    <a href="#"><i class="fab fa-whatsapp"></i></a>
+                    <a href="#" aria-label="Facebook"><i class="fab fa-facebook-f"></i></a>
+                    <a href="#" aria-label="Instagram"><i class="fab fa-instagram"></i></a>
+                    <a href="#" aria-label="WhatsApp"><i class="fab fa-whatsapp"></i></a>
                 </div>
             </div>
         </div>
         <div class="copyright">
-            <p>&copy; 2023 Colchones Premium Neuquén. Todos los derechos reservados.</p>
+            <p>&copy; <span id="current-year">2023</span> Colchones Premium Neuquén. Todos los derechos reservados.</p>
         </div>
     </footer>
 
     <!-- Modal para vendedores -->
-    <div id="modalVendedores" class="modal">
+    <div id="modalVendedores" class="modal" aria-hidden="true" role="dialog" aria-labelledby="modalTitulo">
         <div class="modal-contenido">
-            <span class="cerrar">&times;</span>
-            <h2>Panel de Vendedores</h2>
+            <button class="cerrar" aria-label="Cerrar modal">&times;</button>
+            <h2 id="modalTitulo">Panel de Vendedores</h2>
             
             <div class="form-group">
-                <label>Nombre del Vendedor:</label>
-                <input type="text" id="nombreVendedor" class="form-input">
+                <label for="nombreVendedor">Nombre del Vendedor:</label>
+                <input type="text" id="nombreVendedor" class="form-input" required>
             </div>
             
             <div class="form-group">
-                <label>Cliente:</label>
-                <input type="text" id="nombreCliente" placeholder="Nombre y Apellido" class="form-input">
+                <label for="nombreCliente">Cliente:</label>
+                <input type="text" id="nombreCliente" placeholder="Nombre y Apellido" class="form-input" required>
             </div>
             
             <div class="productos-lista">
                 <h3>Seleccionar Productos</h3>
-                <div id="listaProductosVendedor" class="lista-productos"></div>
+                <div id="listaProductosVendedor" class="lista-productos" role="region" aria-live="polite"></div>
             </div>
             
             <div class="resumen-pedido">
                 <h3>Resumen del Pedido</h3>
-                <div id="detallePedido"></div>
+                <div id="detallePedido" role="region" aria-live="polite"></div>
                 <div class="total-pedido">
                     <strong>Total: $<span id="totalPedido">0.00</span></strong>
                 </div>
@@ -133,5 +144,9 @@
     </div>
 
     <script src="script.js"></script>
+    <script>
+        // Actualizar año automáticamente
+        document.getElementById('current-year').textContent = new Date().getFullYear();
+    </script>
 </body>
 </html>
