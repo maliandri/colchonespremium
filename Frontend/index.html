@@ -10,16 +10,17 @@
 </head>
 <body>
     <header>
-        <div class="header-container">
-            <div class="logo">
-            <img src="assets/logo.png" alt="Colchones Premium" class="logo-img">
-        </div>
-            <div class="logo">Colchones<span>Premium</span></div>
+        <div class="header-container container">
+            <a href="#" class="logo">
+                <img src="assets/logo.png" alt="Colchones Premium" class="logo-img">
+                <span class="logo-text">Colchones<span>Premium</span></span>
+            </a>
             <nav class="main-nav">
                 <ul>
                     <li><a href="#">Inicio</a></li>
                     <li><a href="#productos">Productos</a></li>
                     <li><a href="#">Contacto</a></li>
+                    <li><a href="#" class="vendedores-link">Acceso Vendedores</a></li>
                     <li>
                         <a href="#">
                             <i class="fas fa-shopping-cart cart-icon"></i>
@@ -60,7 +61,7 @@
     </main>
 
     <footer class="footer">
-        <div class="footer-container">
+        <div class="footer-container container">
             <div class="footer-section">
                 <h3>Productos</h3>
                 <ul>
@@ -97,6 +98,39 @@
             <p>&copy; 2023 Colchones Premium Neuquén. Todos los derechos reservados.</p>
         </div>
     </footer>
+
+    <!-- Modal para vendedores -->
+    <div id="modalVendedores" class="modal">
+        <div class="modal-contenido">
+            <span class="cerrar">&times;</span>
+            <h2>Panel de Vendedores</h2>
+            
+            <div class="form-group">
+                <label>Nombre del Vendedor:</label>
+                <input type="text" id="nombreVendedor" class="form-input">
+            </div>
+            
+            <div class="form-group">
+                <label>Cliente:</label>
+                <input type="text" id="nombreCliente" placeholder="Nombre y Apellido" class="form-input">
+            </div>
+            
+            <div class="productos-lista">
+                <h3>Seleccionar Productos</h3>
+                <div id="listaProductosVendedor" class="lista-productos"></div>
+            </div>
+            
+            <div class="resumen-pedido">
+                <h3>Resumen del Pedido</h3>
+                <div id="detallePedido"></div>
+                <div class="total-pedido">
+                    <strong>Total: $<span id="totalPedido">0.00</span></strong>
+                </div>
+            </div>
+            
+            <button id="finalizarPedido" class="btn">Finalizar Pedido</button>
+        </div>
+    </div>
 
     <script src="script.js"></script>
 </body>

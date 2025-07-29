@@ -196,3 +196,181 @@ document.addEventListener('DOMContentLoaded', () => {
   // ===== INICIALIZACIÓN =====
   cargarProductos();
 });
+// Agrega esto al final de tu script.js
+
+// Variables globales
+let carritoVendedor = [];
+let productosDisponibles = [];
+
+// Modal de vendedores
+const modalVendedores = document.getElementById('modalVendedores');
+const btnVendedores = document.getElementById('accesoVendedores');
+const spanCerrar = document.querySelector('.cerrar');
+
+// Mostrar modal
+btnVendedores.addEventListener('click', function(e) {
+  e.preventDefault();
+  cargarProductosParaVendedor();
+  modalVendedores.style.display = 'block';
+});
+
+// Cerrar modal
+spanCerrar.addEventListener('click', function() {
+  modalVendedores.style.display = 'none';
+});
+
+// Cerrar al hacer click fuera
+window.addEventListener('click', function(event) {
+  if (event.target == modalVendedores) {
+    modalVendedores.style.display = 'none';
+  }
+});
+
+// Cargar productos para vendedor
+function cargarProductosParaVendedor() {
+  fetch(API_URL)
+    .then(res => res.json())
+    .then(data => {
+      productosDisponibles = data;
+      mostrarProductosParaVendedor(data);
+    })
+    .catch(error => console.error("Error:", error));
+}
+
+// Mostrar productos en modal
+function mostrarProductosParaVendedor(productos) {
+  const lista = document.getElementById('listaProductosVendedor');
+  lista.innerHTML = '';
+
+  productos.forEach(producto => {
+    const div = document.createElement('div');
+    div.className = 'producto-vendedor';
+    div.innerHTML = `
+      <h4>${producto.Nombre}</h4>
+      <p>Marca: ${producto.Marca}</p>
+      <p>Precio: $${producto.Precio}</p>
+      <div class="cantidad-control">
+        <button class="restar" data-id="${producto._id}">-</button>
+        <input type="number" value="0" min="0" class="cantidad" data-id="${producto._id}">
+        <button class="sumar" data-id="${producto._id}">+</button>
+      </div>
+      <button class="btn-agregar" data-id="${producto._id}">Agregar</button>
+    `;
+    lista.appendChild(div);
+  });
+
+  // Event listeners para controles
+  document.querySelectorAll('.btn-agregar').forEach(btn => {
+    btn.addEventListener('click', agregarAlPedido);
+  });
+
+  document.querySelectorAll('.sumar').forEach(btn => {
+    btn.addEventListener('click', aumentarCantidad);
+  });
+
+  document.querySelectorAll('.restar').forEach(btn => {
+    btn.addEventListener('click', disminuirCantidad);
+  });
+
+  document.querySelectorAll('.cantidad').forEach(input => {
+    input.addEventListener('change', actualizarCantidad);
+  });
+}
+
+// Funciones para manejar el pedido
+function agregarAlPedido(e) {
+  const productoId = e.target.getAttribute('data-id');
+  const producto = productosDisponibles.find(p => p._id === productoId);
+  const cantidadInput = document.querySelector(`.cantidad[data-id="${productoId}"]`);
+  const cantidad = parseInt(cantidadInput.value);
+
+  if (cantidad > 0) {
+    const existe = carritoVendedor.find(item => item.id === productoId);
+    
+    if (existe) {
+      existe.cantidad += cantidad;
+    } else {
+      carritoVendedor.push({
+        id: productoId,
+        nombre: producto.Nombre,
+        precio: producto.Precio,
+        cantidad: cantidad
+      });
+    }
+    
+    cantidadInput.value = 0;
+    actualizarResumenPedido();
+  }
+}
+
+function aumentarCantidad(e) {
+  const productoId = e.target.getAttribute('data-id');
+  const input = document.querySelector(`.cantidad[data-id="${productoId}"]`);
+  input.value = parseInt(input.value) + 1;
+}
+
+function disminuirCantidad(e) {
+  const productoId = e.target.getAttribute('data-id');
+  const input = document.querySelector(`.cantidad[data-id="${productoId}"]`);
+  if (parseInt(input.value) > 0) {
+    input.value = parseInt(input.value) - 1;
+  }
+}
+
+function actualizarCantidad(e) {
+  if (parseInt(e.target.value) < 0) {
+    e.target.value = 0;
+  }
+}
+
+function actualizarResumenPedido() {
+  const detalle = document.getElementById('detallePedido');
+  const totalElement = document.getElementById('totalPedido');
+  let total = 0;
+  
+  detalle.innerHTML = '';
+  
+  carritoVendedor.forEach(item => {
+    const subtotal = item.precio * item.cantidad;
+    total += subtotal;
+    
+    const div = document.createElement('div');
+    div.className = 'item-pedido';
+    div.innerHTML = `
+      <span>${item.nombre} (${item.cantidad})</span>
+      <span>$${subtotal.toFixed(2)}</span>
+    `;
+    detalle.appendChild(div);
+  });
+  
+  totalElement.textContent = total.toFixed(2);
+}
+
+// Finalizar pedido
+document.getElementById('finalizarPedido').addEventListener('click', function() {
+  const nombreVendedor = document.getElementById('nombreVendedor').value;
+  const nombreCliente = document.getElementById('nombreCliente').value;
+  
+  if (!nombreVendedor || !nombreCliente || carritoVendedor.length === 0) {
+    alert('Complete todos los campos y agregue productos al pedido');
+    return;
+  }
+  
+  const resumen = `
+    Vendedor: ${nombreVendedor}
+    Cliente: ${nombreCliente}
+    Productos:
+    ${carritoVendedor.map(item => `- ${item.nombre} (${item.cantidad}): $${(item.precio * item.cantidad).toFixed(2)}`).join('\n')}
+    Total: $${document.getElementById('totalPedido').textContent}
+  `;
+  
+  // Aquí podrías enviar el pedido a tu backend
+  console.log('Pedido finalizado:', resumen);
+  alert('Pedido registrado con éxito:\n\n' + resumen);
+  
+  // Resetear formulario
+  carritoVendedor = [];
+  document.getElementById('nombreCliente').value = '';
+  document.querySelectorAll('.cantidad').forEach(input => input.value = 0);
+  actualizarResumenPedido();
+});
