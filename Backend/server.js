@@ -13,28 +13,38 @@ dotenv.config();
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// Configuración CORS para Netlify
+// Middlewares
 app.use(cors({
-  origin: ['https://colchonqn.netlify.app']
+  origin: ['https://colchonqn.netlify.app', 'http://localhost:5500'] // Agregar desarrollo local
 }));
+app.use(express.json()); // Para futuros endpoints POST
 
-// Función para generar IDs únicos (ej: "ALM-001")
+// Cache de productos (mejora rendimiento)
+let cacheProductos = null;
+let cacheTimestamp = null;
+const CACHE_DURATION = 5 * 60 * 1000; // 5 minutos
+
+// Función para generar IDs únicos
 const generarIdUnico = (categoria, contador) => {
   const prefijo = categoria ? categoria.slice(0, 3).toUpperCase() : 'GEN';
   return `${prefijo}-${contador.toString().padStart(3, '0')}`;
 };
 
-// Endpoint para productos
-app.get('/api/colchones', (req, res) => {
+// Leer Excel con cache
+const leerExcel = () => {
+  const now = Date.now();
+  if (cacheProductos && (now - cacheTimestamp) < CACHE_DURATION) {
+    return cacheProductos;
+  }
+
   try {
     const workbook = xlsx.readFile(path.join(__dirname, 'precios_colchones.xlsx'));
     const sheet = workbook.Sheets[workbook.SheetNames[0]];
     const data = xlsx.utils.sheet_to_json(sheet);
     
-    // Contadores por categoría
+    // Procesar datos y actualizar cache
     const contadores = {};
-    
-    const productos = data
+    cacheProductos = data
       .filter(item => 
         item.Mostrar?.toLowerCase() === "si" && 
         item.Imagen?.trim() !== ""
@@ -48,31 +58,55 @@ app.get('/api/colchones', (req, res) => {
           _id: generarIdUnico(categoria, contadores[categoria])
         };
       });
-    
-    res.json(productos);
+
+    cacheTimestamp = now;
+    return cacheProductos;
+
   } catch (err) {
-    console.error('Error en /api/colchones:', err);
-    res.status(500).json({ error: 'Error al procesar los productos' });
+    console.error('Error al leer Excel:', err);
+    return null;
   }
+};
+
+// Endpoint para productos (con cache)
+app.get('/api/colchones', (req, res) => {
+  const productos = leerExcel();
+  if (!productos) {
+    return res.status(500).json({ error: 'Error al cargar productos' });
+  }
+  res.json(productos);
 });
 
-// Endpoint para categorías
+// Endpoint para categorías (optimizado)
 app.get('/api/categorias', (req, res) => {
-  try {
-    const workbook = xlsx.readFile(path.join(__dirname, 'precios_colchones.xlsx'));
-    const sheet = workbook.Sheets[workbook.SheetNames[0]];
-    const data = xlsx.utils.sheet_to_json(sheet);
-    
-    // Extraer categorías válidas (filtra productos mostrados y elimina valores falsy)
-    const categorias = data
-      .filter(item => item.Mostrar?.toLowerCase() === "si" && item.Categoria)
-      .map(item => item.Categoria.trim()) // Limpia espacios en blanco
-      .filter((categoria, index, self) => self.indexOf(categoria) === index); // Elimina duplicados
-
-    res.json(categorias);
-  } catch (err) {
-    console.error('Error en /api/categorias:', err);
-    res.status(500).json({ error: 'Error al obtener categorías' });
+  const productos = leerExcel();
+  if (!productos) {
+    return res.status(500).json({ error: 'Error al cargar categorías' });
   }
+
+  const categorias = [...new Set(
+    productos.map(p => p.Categoria).filter(Boolean) // <-- Se cerró el paréntesis aquí
+  )]; // <-- Y aquí se cierra el Set
+  
+  res.json(categorias);
 });
-app.listen(PORT, () => console.log(`🚀 Servidor corriendo en http://localhost:${PORT}`));
+// Nuevo endpoint para enviar presupuestos (ejemplo futuro)
+app.post('/api/enviar-presupuesto', (req, res) => {
+  // Aquí podrías integrar un servicio de email como SendGrid
+  res.json({ success: true, message: 'Función en desarrollo' });
+});
+
+// Manejo de errores global
+app.use((err, req, res, next) => {
+  console.error('Error global:', err);
+  res.status(500).json({ error: 'Error interno del servidor' });
+});
+
+// Iniciar servidor
+app.listen(PORT, () => {
+  console.log(`🚀 Servidor en http://localhost:${PORT}`);
+  console.log('Endpoints disponibles:');
+  console.log(`- GET /api/colchones`);
+  console.log(`- GET /api/categorias`);
+  console.log(`- POST /api/enviar-presupuesto`);
+});
