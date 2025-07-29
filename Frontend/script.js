@@ -32,29 +32,54 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   };
 
-  // Mostrar productos
+  // Mostrar productos (versión mejorada)
   const mostrarProductos = (productos) => {
     productosContainer.innerHTML = '';
+    
     if (productos.length === 0) {
-      productosContainer.innerHTML = '<p class="no-resultados">No se encontraron productos.</p>';
+      productosContainer.innerHTML = '<p class="no-products">No se encontraron productos.</p>';
       return;
     }
 
-    productos.forEach(producto => {
+    productos.forEach((producto, index) => {
       const div = document.createElement('div');
       div.className = 'producto';
+      div.style.animationDelay = `${index * 0.1}s`;
       div.innerHTML = `
-        <img src="${producto.Imagen}" alt="${producto.Nombre}" loading="lazy">
+        <img src="${producto.Imagen}" alt="${producto.Nombre}" class="producto-imagen" loading="lazy">
         <div class="producto-info">
-          <h3>${producto.Nombre}</h3>
-          <p class="marca">${producto.Marca}</p>
-          <p class="precio">$${parseInt(producto.Precio).toLocaleString('es-AR')}</p>
-          <span class="categoria">${producto.Categoria}</span>
+          <h3 class="producto-titulo">${producto.Nombre}</h3>
+          <p class="producto-marca">${producto.Marca}</p>
+          <p class="producto-precio">$${parseInt(producto.Precio).toLocaleString('es-AR')}</p>
+          <span class="producto-categoria">${producto.Categoria}</span>
+          <button class="btn-comprar">Agregar al carrito</button>
         </div>
       `;
       productosContainer.appendChild(div);
     });
+
+    // Agregar event listeners a los botones (opcional)
+    document.querySelectorAll('.btn-comprar').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        e.preventDefault();
+        // Lógica para agregar al carrito aquí
+        console.log('Producto agregado al carrito');
+      });
+    });
   };
+
+  // Smooth scroll para navegación
+  document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+    anchor.addEventListener('click', function(e) {
+      e.preventDefault();
+      const target = document.querySelector(this.getAttribute('href'));
+      if (target) {
+        target.scrollIntoView({
+          behavior: 'smooth'
+        });
+      }
+    });
+  });
 
   // Inicializar
   cargarCategorias();
@@ -70,6 +95,7 @@ document.addEventListener('DOMContentLoaded', () => {
       .then(data => {
         const filtrados = data.filter(item => item.Categoria === categoria);
         mostrarProductos(filtrados);
-      });
+      })
+      .catch(error => console.error("Error al filtrar:", error));
   });
 });

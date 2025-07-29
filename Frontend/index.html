@@ -3,56 +3,76 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Colchones Premium Neuquén</title>
+    <title>Colchones Premium Neuquén - Calidad en Descanso</title>
     <link rel="stylesheet" href="styles.css">
-    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
     <header>
-        <div class="container">
-            <h1 class="logo">Colchones Premium Neuquén</h1>
+        <div class="header-container">
+            <div class="logo">Colchones<span>Premium</span></div>
             <nav class="main-nav">
                 <ul>
                     <li><a href="#">Inicio</a></li>
-                    <li><a href="#">Productos</a></li>
+                    <li><a href="#productos">Productos</a></li>
                     <li><a href="#">Contacto</a></li>
+                    <li><a href="#"><i class="fas fa-shopping-cart"></i></a></li>
                 </ul>
             </nav>
         </div>
     </header>
 
-    <main class="container">
-        <section class="quick-access">
-            <a href="#">Hola</a>
-            <a href="#">Trabajar</a>
-            <a href="#">Gimnio</a>
-        </section>
+    <section class="hero">
+        <h1>Descanso de Calidad para tu Hogar</h1>
+        <p>Encuentra los mejores colchones y almohadas para tu descanso</p>
+    </section>
 
-        <section class="banner">
-            <h2>Descanso de calidad para tu hogar</h2>
-        </section>
-
-        <section class="search-section">
-            <div class="search-container">
-                <span>Buscas</span>
-                <select id="categoria">
-                    <option value="">Todos los categorías</option>
-                    <!-- Las categorías se cargarán dinámicamente -->
-                </select>
+    <main>
+        <section id="productos" class="productos-container">
+            <h2 class="section-title">Nuestros Productos</h2>
+            <div class="filtros">
+                <div class="search-box">
+                    <input type="text" placeholder="Buscar productos...">
+                    <select id="categoria">
+                        <option value="">Todas las categorías</option>
+                    </select>
+                </div>
             </div>
-        </section>
-
-        <section class="productos" id="productos">
-            <!-- Los productos se cargarán dinámicamente -->
+            <div class="productos" id="productos">
+                <!-- Productos cargados dinámicamente -->
+            </div>
         </section>
     </main>
 
     <footer class="footer">
         <div class="footer-container">
-            <!-- Secciones del footer aquí -->
+            <div class="footer-section">
+                <h3>Productos</h3>
+                <ul>
+                    <li><a href="#">Colchones</a></li>
+                    <li><a href="#">Almohadas</a></li>
+                    <li><a href="#">Sommiers</a></li>
+                </ul>
+            </div>
+            <div class="footer-section">
+                <h3>Contacto</h3>
+                <ul>
+                    <li><i class="fas fa-phone"></i> 299 123-4567</li>
+                    <li><i class="fas fa-map-marker-alt"></i> Neuquén Capital</li>
+                    <li><i class="fas fa-envelope"></i> info@colchonespremium.com</li>
+                </ul>
+            </div>
+            <div class="footer-section">
+                <h3>Horarios</h3>
+                <ul>
+                    <li>Lunes a Viernes: 9-18hs</li>
+                    <li>Sábados: 9-13hs</li>
+                </ul>
+            </div>
         </div>
         <div class="copyright">
-            <p>Copyright © 2025 Colchones Premium Neuquén</p>
+            <p>&copy; 2023 Colchones Premium Neuquén. Todos los derechos reservados.</p>
         </div>
     </footer>
 
