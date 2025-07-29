@@ -1,130 +1,60 @@
-<!<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Productos y Categorías Dinámicas</title>
-    <style>
-        /* Estilos básicos para que se vea ordenado */
-        body {
-            font-family: Arial, sans-serif;
-            margin: 20px;
-        }
-        .categorias-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit,minmax(150px,1fr));
-            gap: 15px;
-            margin-bottom: 30px;
-        }
-        .categoria-card {
-            position: relative;
-            cursor: pointer;
-            overflow: hidden;
-            border-radius: 8px;
-            box-shadow: 0 2px 8px rgb(0 0 0 / 0.1);
-            transition: transform 0.2s;
-        }
-        .categoria-card:hover {
-            transform: scale(1.05);
-        }
-        .categoria-img img {
-            width: 100%;
-            height: 120px;
-            object-fit: cover;
-            display: block;
-        }
-        .categoria-overlay {
-            position: absolute;
-            bottom: 0;
-            width: 100%;
-            color: white;
-            background: rgba(0,0,0,0.5);
-            padding: 6px;
-            text-align: center;
-            font-weight: bold;
-        }
-        /* Productos */
-        #contenedor-productos {
-            display: grid;
-            grid-template-columns: repeat(auto-fit,minmax(220px,1fr));
-            gap: 20px;
-        }
-        .producto-card {
-            border: 1px solid #ccc;
-            border-radius: 8px;
-            padding: 10px;
-            box-shadow: 0 2px 5px rgb(0 0 0 / 0.1);
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            background: #fff;
-        }
-        .producto-img img {
-            width: 100%;
-            max-height: 140px;
-            object-fit: contain;
-            margin-bottom: 10px;
-        }
-        .producto-nombre {
-            margin: 0 0 5px;
-            font-size: 1.1em;
-            text-align: center;
-        }
-        .producto-categoria, .producto-precio {
-            font-size: 0.9em;
-            color: #555;
-        }
-        /* Controles filtro */
-        .controles {
-            margin-bottom: 20px;
-            display: flex;
-            flex-wrap: wrap;
-            gap: 15px;
-            align-items: center;
-        }
-        select, input[type="search"] {
-            padding: 6px 10px;
-            font-size: 1em;
-            border-radius: 4px;
-            border: 1px solid #aaa;
-        }
-        label {
-            font-weight: bold;
-        }
-    </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Colchones Premium Neuquén</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;700&display=swap" rel="stylesheet">
 </head>
 <body>
-
-    <h1>Catálogo de Productos</h1>
-
-    <section>
-        <h2 class="section-title">Nuestras Categorías</h2>
-        <div class="categorias-grid"></div>
-    </section>
-
-    <section>
-        <div class="controles">
-            <label for="filtro-categoria">Filtrar por categoría:</label>
-            <select id="filtro-categoria">
-                <option value="">Todas las categorías</option>
-            </select>
-
-            <label for="busqueda">Buscar:</label>
-            <input type="search" id="busqueda" placeholder="Buscar por nombre" />
-
-            <label for="orden">Ordenar por:</label>
-            <select id="orden">
-                <option value="nombre-asc">Nombre ↑</option>
-                <option value="nombre-desc">Nombre ↓</option>
-                <option value="precio-asc">Precio ↑</option>
-                <option value="precio-desc">Precio ↓</option>
-            </select>
+    <header>
+        <div class="container">
+            <h1 class="logo">Colchones Premium Neuquén</h1>
+            <nav class="main-nav">
+                <ul>
+                    <li><a href="#">Inicio</a></li>
+                    <li><a href="#">Productos</a></li>
+                    <li><a href="#">Contacto</a></li>
+                </ul>
+            </nav>
         </div>
+    </header>
 
-        <div id="contenedor-productos">
-            <!-- Productos se renderizan aquí -->
+    <main class="container">
+        <section class="quick-access">
+            <a href="#">Hola</a>
+            <a href="#">Trabajar</a>
+            <a href="#">Gimnio</a>
+        </section>
+
+        <section class="banner">
+            <h2>Descanso de calidad para tu hogar</h2>
+        </section>
+
+        <section class="search-section">
+            <div class="search-container">
+                <span>Buscas</span>
+                <select id="categoria">
+                    <option value="">Todos los categorías</option>
+                    <!-- Las categorías se cargarán dinámicamente -->
+                </select>
+            </div>
+        </section>
+
+        <section class="productos" id="productos">
+            <!-- Los productos se cargarán dinámicamente -->
+        </section>
+    </main>
+
+    <footer class="footer">
+        <div class="footer-container">
+            <!-- Secciones del footer aquí -->
         </div>
-    </section>
+        <div class="copyright">
+            <p>Copyright © 2025 Colchones Premium Neuquén</p>
+        </div>
+    </footer>
 
     <script src="script.js"></script>
 </body>

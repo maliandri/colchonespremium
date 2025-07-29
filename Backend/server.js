@@ -1,99 +1,59 @@
-require('dotenv').config(); // Para variables de entorno
-const express = require('express');
-const cors = require('cors');
-const xlsx = require('xlsx');
-const path = require('path');
-const fs = require('fs');
+import express from 'express';
+import cors from 'cors';
+import xlsx from 'xlsx';
+import path from 'path';
+import { fileURLToPath } from 'url';
+import dotenv from 'dotenv';
 
+// Configuración __dirname para ES Modules
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+dotenv.config();
 const app = express();
+const PORT = process.env.PORT || 3000;
 
-// Configuración CORS
-const corsOptions = {
-  origin: [
-    'https://colchonqn.netlify.app',
-    'http://localhost:3000',
-    'http://localhost:4000'
-  ],
-  optionsSuccessStatus: 200
-};
-app.use(cors(corsOptions));
+// Configuración CORS para Netlify
+app.use(cors({
+  origin: ['https://colchonqn.netlify.app']
+}));
 
-// Middleware de log
-app.use((req, res, next) => {
-  console.log(`${new Date().toISOString()} - ${req.method} ${req.path}`);
-  next();
-});
-
-// Cargar datos del Excel con filtro por Mostrar = "si"
-let productosData = [];
-try {
-  const filePath = path.join(__dirname, 'precios_colchones.xlsx');
-  console.log("Cargando datos desde:", filePath);
-
-  const workbook = xlsx.readFile(filePath);
-  const sheetName = workbook.SheetNames[0];
-  productosData = xlsx.utils.sheet_to_json(workbook.Sheets[sheetName])
-    .filter(p => (p.Mostrar || '').toString().trim().toLowerCase() === 'si');
-
-  console.log(`✅ Datos cargados: ${productosData.length} productos visibles`);
-} catch (error) {
-  console.error("❌ Error al cargar el archivo Excel:", error);
-  process.exit(1);
-}
-
-// Test
-app.get('/test', (req, res) => {
-  res.json({
-    status: 'success',
-    message: "API funcionando correctamente",
-    timestamp: new Date().toISOString(),
-    data: {
-      total_productos: productosData.length,
-      categorias: [...new Set(productosData.map(p => p.Categoria))].length
-    }
-  });
-});
-
-// Endpoint principal
-app.get('/api/productos', (req, res) => {
+// Endpoint para productos
+app.get('/api/colchones', (req, res) => {
   try {
-    const { categoria, limite } = req.query;
-    let data = [...productosData];
-
-    if (categoria) {
-      data = data.filter(p => p.Categoria === categoria);
-    }
-
-    if (limite && !isNaN(limite)) {
-      data = data.slice(0, Number(limite));
-    }
-
-    res.json({
-      status: 'success',
-      results: data.length,
-      data
-    });
-
-  } catch (error) {
-    console.error("Error en /api/productos:", error);
-    res.status(500).json({
-      status: 'error',
-      message: "Error interno del servidor"
-    });
+    const workbook = xlsx.readFile(path.join(__dirname, 'precios_colchones.xlsx'));
+    const sheet = workbook.Sheets[workbook.SheetNames[0]];
+    const data = xlsx.utils.sheet_to_json(sheet);
+    
+    const productos = data.filter(item => 
+      item.Mostrar?.toLowerCase() === "si" && 
+      item.Imagen?.trim() !== ""
+    );
+    
+    res.json(productos);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Error al leer el Excel' });
   }
 });
 
-app.use((req, res) => {
-  res.status(404).json({
-    status: 'fail',
-    message: 'Ruta no encontrada'
-  });
+// Endpoint para categorías
+app.get('/api/categorias', (req, res) => {
+  try {
+    const workbook = xlsx.readFile(path.join(__dirname, 'precios_colchones.xlsx'));
+    const sheet = workbook.Sheets[workbook.SheetNames[0]];
+    const data = xlsx.utils.sheet_to_json(sheet);
+    
+    const categorias = [...new Set(
+      data.filter(item => item.Mostrar?.toLowerCase() === "si")
+          .map(item => item.Categoria)
+    )];
+    
+    res.json(categorias);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Error al leer el Excel' });
+  }
 });
 
-const PORT = process.env.PORT || 4000;
-app.listen(PORT, () => {
-  console.log(`\n=== SERVIDOR ACTIVO ===`);
-  console.log(`🔗 http://localhost:${PORT}/api/productos`);
-  console.log(`🔗 Prueba: http://localhost:${PORT}/test`);
-  console.log(`🚀 Entorno: ${process.env.NODE_ENV || 'development'}\n`);
-});
+app.listen(PORT, () => console.log(`🚀 Servidor en puerto ${PORT}`));
