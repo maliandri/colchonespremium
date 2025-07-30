@@ -38,7 +38,7 @@ a {
 header {
   background: black; /* o #000000 */
   color: white;
-  padding: 0.4rem 0;
+  padding: 0.4 rem 0;
   box-shadow: 0 4px 12px rgba(0,0,0,0.1);
   position: sticky;
   top: 0; 
@@ -65,7 +65,7 @@ header {
 }
 
 .logo-img {
-  height: 250px;
+  height: 100px;
   width: auto;
   object-fit: contain;
 }
