@@ -282,7 +282,7 @@ header {
 }
 
 .producto-imagen-container {
-  height: 200px;        /* Fijo y parejo para todos */
+  height: 100px;        /* Fijo y parejo para todos */
   background: white;    /* Fondo claro para contraste */
   overflow: hidden;
   display: flex;
