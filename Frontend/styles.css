@@ -37,7 +37,7 @@ a {
 /* ===== HEADER ===== */
 header {
   background: black; /* o #000000 */
-  color: black;
+  color: white;
   padding: 0.8rem 0;
   box-shadow: 0 4px 12px rgba(0,0,0,0.1);
   position: sticky;
