@@ -288,7 +288,6 @@ header {
 
 .producto-imagen-container {
   height: 100px;
-  width: 100%;           /* Asegura que ocupe el ancho disponible */
   background: white;
   overflow: hidden;
   display: flex;
