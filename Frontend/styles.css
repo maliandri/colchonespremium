@@ -276,14 +276,20 @@ header {
   }
 }
 
+.producto {
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  cursor: pointer;
+}
+
 .producto:hover {
   transform: translateY(-10px);
-  box-shadow: 0 15px 30px rgba(0,0,0,0.12);
+  box-shadow: 0 15px 30px rgba(0, 0, 0, 0.12);
 }
 
 .producto-imagen-container {
-  height: 100px;        /* Fijo y parejo para todos */
-  background: white;    /* Fondo claro para contraste */
+  height: 100px;
+  width: 100%;           /* Asegura que ocupe el ancho disponible */
+  background: white;
   overflow: hidden;
   display: flex;
   align-items: center;
@@ -291,9 +297,9 @@ header {
 }
 
 .producto-imagen {
-  width: 100%;
-  height: 100%;
-  object-fit: contain; /* o 'cover' si querés recortar */
+  max-height: 100%;
+  max-width: 100%;
+  object-fit: contain;
 }
 
 
