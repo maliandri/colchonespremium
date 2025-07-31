@@ -372,7 +372,6 @@ document.addEventListener('DOMContentLoaded', function () {
     actualizarResumenPedido();
     mostrarNotificacion('Presupuesto reseteado');
   };
-
   // ================= EVENT LISTENERS =================
   btnVendedores.addEventListener('click', (e) => {
     e.preventDefault();
@@ -392,31 +391,40 @@ document.addEventListener('DOMContentLoaded', function () {
   ordenSelect.addEventListener('change', aplicarFiltros);
   searchInput.addEventListener('input', aplicarFiltros);
 
-  // ================= INICIALIZACIÓN =================
-  cargarProductos();
-});
-// ===== ZOOM DE IMAGENES =====
-document.querySelectorAll('.producto-imagen-container img').forEach(img => {
-  img.addEventListener('click', function() {
-    const modal = document.getElementById('modalImagen');
-    const imagenAmpliada = document.getElementById('imagenAmpliada');
-    
-    imagenAmpliada.src = this.src;
-    imagenAmpliada.alt = this.alt;
-    modal.style.display = 'flex';
-    
-    // Cerrar al hacer clic fuera o en la imagen
-    modal.addEventListener('click', function(e) {
-      if (e.target === modal || e.target === imagenAmpliada) {
-        modal.style.display = 'none';
-      }
-    });
-    
-    // Cerrar con tecla ESC
-    document.addEventListener('keydown', function(e) {
-      if (e.key === 'Escape') {
-        modal.style.display = 'none';
-      }
+   // ================= ZOOM DE IMAGENES =================
+  document.querySelectorAll('.producto-imagen-container img').forEach(img => {
+    img.addEventListener('click', function() {
+      const modal = document.getElementById('modalImagen');
+      const imagenAmpliada = document.getElementById('imagenAmpliada');
+      
+      imagenAmpliada.src = this.src;
+      imagenAmpliada.alt = this.alt;
+      modal.classList.add('mostrar');
+      
+      // Cerrar modal
+      const cerrarModal = () => {
+        modal.classList.remove('mostrar');
+      };
+      
+      // Botón de cerrar
+      document.querySelector('.cerrar-modal').addEventListener('click', cerrarModal);
+      
+      // Cerrar al hacer clic fuera de la imagen
+      modal.addEventListener('click', function(e) {
+        if (e.target === modal) {
+          cerrarModal();
+        }
+      });
+      
+      // Cerrar con tecla ESC
+      document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+          cerrarModal();
+        }
+      });
     });
   });
+
+  // ================= INICIALIZACIÓN =================
+  cargarProductos();
 });
