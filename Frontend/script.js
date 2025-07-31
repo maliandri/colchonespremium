@@ -395,3 +395,28 @@ document.addEventListener('DOMContentLoaded', function () {
   // ================= INICIALIZACIÓN =================
   cargarProductos();
 });
+// ===== ZOOM DE IMAGENES =====
+document.querySelectorAll('.producto-imagen-container img').forEach(img => {
+  img.addEventListener('click', function() {
+    const modal = document.getElementById('modalImagen');
+    const imagenAmpliada = document.getElementById('imagenAmpliada');
+    
+    imagenAmpliada.src = this.src;
+    imagenAmpliada.alt = this.alt;
+    modal.style.display = 'flex';
+    
+    // Cerrar al hacer clic fuera o en la imagen
+    modal.addEventListener('click', function(e) {
+      if (e.target === modal || e.target === imagenAmpliada) {
+        modal.style.display = 'none';
+      }
+    });
+    
+    // Cerrar con tecla ESC
+    document.addEventListener('keydown', function(e) {
+      if (e.key === 'Escape') {
+        modal.style.display = 'none';
+      }
+    });
+  });
+});

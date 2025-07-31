@@ -769,3 +769,42 @@ header {
   animation: spin 1s linear infinite;
   color: var(--secondary);
 }
+/* Modal para imagen ampliada */
+.modal-imagen {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.9);
+  z-index: 3000;
+  cursor: zoom-out;
+}
+
+.modal-imagen-contenido {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100%;
+  padding: 20px;
+}
+
+.modal-imagen-contenido img {
+  max-width: 90%;
+  max-height: 90%;
+  object-fit: contain;
+  animation: fadeIn 0.3s;
+  border: 3px solid white;
+  box-shadow: 0 0 20px rgba(0, 0, 0, 0.6);
+}
+
+/* Efecto hover para indicar que es clickeable */
+.producto-imagen-container img {
+  cursor: zoom-in;
+  transition: transform 0.3s;
+}
+
+.producto-imagen-container img:hover {
+  transform: scale(1.03);
+}
