@@ -391,39 +391,37 @@ document.addEventListener('DOMContentLoaded', function () {
   ordenSelect.addEventListener('change', aplicarFiltros);
   searchInput.addEventListener('input', aplicarFiltros);
 
-   // ================= ZOOM DE IMAGENES =================
-  document.querySelectorAll('.producto-imagen-container img').forEach(img => {
-    img.addEventListener('click', function() {
+  // ================= ZOOM DE IMAGENES =================
+function setupImageZoom() {
+  // Delegación de eventos para manejar imágenes dinámicas
+  document.addEventListener('click', function(e) {
+    // Abrir modal al hacer clic en imagen de producto
+    if (e.target.matches('.producto-imagen-container img')) {
+      const img = e.target;
       const modal = document.getElementById('modalImagen');
       const imagenAmpliada = document.getElementById('imagenAmpliada');
       
-      imagenAmpliada.src = this.src;
-      imagenAmpliada.alt = this.alt;
+      imagenAmpliada.src = img.src;
+      imagenAmpliada.alt = img.alt;
       modal.classList.add('mostrar');
-      
-      // Cerrar modal
-      const cerrarModal = () => {
-        modal.classList.remove('mostrar');
-      };
-      
-      // Botón de cerrar
-      document.querySelector('.cerrar-modal').addEventListener('click', cerrarModal);
-      
-      // Cerrar al hacer clic fuera de la imagen
-      modal.addEventListener('click', function(e) {
-        if (e.target === modal) {
-          cerrarModal();
-        }
-      });
-      
-      // Cerrar con tecla ESC
-      document.addEventListener('keydown', function(e) {
-        if (e.key === 'Escape') {
-          cerrarModal();
-        }
-      });
-    });
+    }
+    
+    // Cerrar modal
+    if (e.target.matches('.cerrar-modal, #modalImagen.mostrar')) {
+      document.getElementById('modalImagen').classList.remove('mostrar');
+    }
   });
+
+  // Cerrar con tecla ESC
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape' && document.getElementById('modalImagen').classList.contains('mostrar')) {
+      document.getElementById('modalImagen').classList.remove('mostrar');
+    }
+  });
+}
+
+// Llamar a la función después de cargar productos
+setupImageZoom(); 
 
   // ================= INICIALIZACIÓN =================
   cargarProductos();
