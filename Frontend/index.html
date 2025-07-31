@@ -176,6 +176,31 @@
     <img id="imagenAmpliada" src="" alt="Imagen ampliada">
   </div>
 </div>
+<!-- Modal del Carrito -->
+<div id="modalCarrito" class="modal">
+  <div class="modal-contenido">
+    <button class="cerrar" aria-label="Cerrar modal">&times;</button>
+    <h2>Tu Carrito de Compras</h2>
+    
+    <div id="listaCarrito" class="lista-productos"></div>
+    
+    <div class="resumen-pedido">
+      <div id="detalleCarrito" class="detalle-pedido"></div>
+      <div class="total-pedido">
+        <strong>Total: $<span id="totalCarrito">0.00</span></strong>
+      </div>
+    </div>
+    
+    <div class="seccion-botones">
+      <button id="vaciarCarrito" class="btn btn-resetear">
+        <i class="fas fa-trash-alt"></i> Vaciar Carrito
+      </button>
+      <button id="comprarAhora" class="btn btn-enviar">
+        <i class="fas fa-credit-card"></i> Comprar Ahora
+      </button>
+    </div>
+  </div>
+</div>
 <script src="script.js"></script>
     <script>
         document.getElementById('current-year').textContent = new Date().getFullYear();

@@ -11,12 +11,13 @@ document.addEventListener('DOMContentLoaded', function () {
   const cartCount = document.querySelector('.cart-count');
   const btnVendedores = document.querySelector('.vendedores-link');
   const modalVendedores = document.getElementById('modalVendedores');
-  const spanCerrar = document.querySelector('.cerrar');
+  const modalCarrito = document.getElementById('modalCarrito');
+  const spanCerrar = document.querySelectorAll('.cerrar');
   const filtroCategoriaVendedor = document.getElementById('filtroCategoriaVendedor');
 
   // ===== Variables de estado =====
   let productosOriginales = [];
-  let carrito = [];
+  let carrito = JSON.parse(localStorage.getItem('carrito')) || [];
   let carritoVendedor = [];
 
   // ================= FUNCIONES DE INTERFAZ =================
@@ -90,6 +91,8 @@ document.addEventListener('DOMContentLoaded', function () {
       mostrarProductos(productosValidos);
       cargarCategorias();
       cargarCategoriasVendedor();
+      setupImageZoom();
+      if (carrito.length > 0) actualizarCarrito();
 
     } catch (error) {
       console.error("Error al cargar productos:", error);
@@ -182,7 +185,7 @@ document.addEventListener('DOMContentLoaded', function () {
     mostrarProductos(productosFiltrados);
   }
 
-  // ================= FUNCIONES DEL CARRITO =================
+  // ================= CARRITO DE COMPRAS =================
   const agregarAlCarrito = (e) => {
     const productoId = e.target.getAttribute('data-id');
     const producto = productosOriginales.find(p => p._id === productoId);
@@ -211,7 +214,142 @@ document.addEventListener('DOMContentLoaded', function () {
   };
 
   const actualizarCarrito = () => {
-    cartCount.textContent = carrito.reduce((total, item) => total + item.cantidad, 0);
+    const totalItems = carrito.reduce((total, item) => total + item.cantidad, 0);
+    cartCount.textContent = totalItems;
+    cartCount.style.display = totalItems > 0 ? 'flex' : 'none';
+    localStorage.setItem('carrito', JSON.stringify(carrito));
+  };
+
+  const mostrarCarrito = () => {
+    const lista = document.getElementById('listaCarrito');
+    const detalle = document.getElementById('detalleCarrito');
+    const totalElement = document.getElementById('totalCarrito');
+    
+    lista.innerHTML = '';
+    let total = 0;
+
+    if (carrito.length === 0) {
+      lista.innerHTML = '<p class="no-products">Tu carrito está vacío</p>';
+      detalle.innerHTML = '<p>No hay productos en el carrito</p>';
+      totalElement.textContent = '0.00';
+      modalCarrito.style.display = 'block';
+      return;
+    }
+
+    carrito.forEach(item => {
+      const producto = productosOriginales.find(p => p._id === item.id);
+      const subtotal = producto.Precio * item.cantidad;
+      total += subtotal;
+
+      const itemElement = document.createElement('div');
+      itemElement.className = 'item-carrito';
+      itemElement.innerHTML = `
+        <img src="${producto.Imagen}" alt="${producto.Nombre}">
+        <div class="item-carrito-info">
+          <h4>${producto.Nombre}</h4>
+          <p>$${producto.Precio.toLocaleString('es-AR')} c/u</p>
+        </div>
+        <div class="item-carrito-control">
+          <button class="restar" data-id="${producto._id}">-</button>
+          <input type="number" value="${item.cantidad}" min="1" class="cantidad" data-id="${producto._id}">
+          <button class="sumar" data-id="${producto._id}">+</button>
+          <button class="btn-eliminar" data-id="${producto._id}">
+            <i class="fas fa-trash"></i>
+          </button>
+        </div>
+      `;
+      lista.appendChild(itemElement);
+    });
+
+    detalle.innerHTML = `
+      <div class="item-pedido">
+        <span>${carrito.reduce((sum, item) => sum + item.cantidad, 0)} productos</span>
+        <span>$${total.toFixed(2)}</span>
+      </div>
+    `;
+    totalElement.textContent = total.toFixed(2);
+    modalCarrito.style.display = 'block';
+
+    // Asignar eventos
+    document.querySelectorAll('.item-carrito-control .sumar').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        const id = e.target.getAttribute('data-id');
+        const item = carrito.find(item => item.id === id);
+        item.cantidad += 1;
+        actualizarCarrito();
+        mostrarCarrito();
+      });
+    });
+
+    document.querySelectorAll('.item-carrito-control .restar').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        const id = e.target.getAttribute('data-id');
+        const item = carrito.find(item => item.id === id);
+        if (item.cantidad > 1) {
+          item.cantidad -= 1;
+          actualizarCarrito();
+          mostrarCarrito();
+        }
+      });
+    });
+
+    document.querySelectorAll('.btn-eliminar').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        const id = e.target.closest('button').getAttribute('data-id');
+        carrito = carrito.filter(item => item.id !== id);
+        actualizarCarrito();
+        mostrarCarrito();
+        mostrarNotificacion('Producto eliminado del carrito');
+      });
+    });
+  };
+
+  const vaciarCarrito = () => {
+    carrito = [];
+    actualizarCarrito();
+    mostrarCarrito();
+    mostrarNotificacion('Carrito vaciado');
+  };
+
+  const realizarCompra = () => {
+    if (carrito.length === 0) {
+      mostrarNotificacion('El carrito está vacío', 'error');
+      return;
+    }
+    
+    // Aquí iría la lógica de pago real
+    mostrarNotificacion('Compra realizada con éxito! Redirigiendo...');
+    setTimeout(() => {
+      carrito = [];
+      actualizarCarrito();
+      modalCarrito.style.display = 'none';
+    }, 2000);
+  };
+
+  // ================= ZOOM DE IMAGENES =================
+  const setupImageZoom = () => {
+    document.addEventListener('click', function(e) {
+      if (e.target.closest('.producto-imagen-container img')) {
+        const img = e.target.closest('.producto-imagen-container img');
+        const modal = document.getElementById('modalImagen');
+        const imagenAmpliada = document.getElementById('imagenAmpliada');
+        
+        imagenAmpliada.src = img.src;
+        imagenAmpliada.alt = img.alt;
+        modal.classList.add('mostrar');
+      }
+      
+      if (e.target.classList.contains('cerrar-modal') || 
+          (e.target.id === 'modalImagen' && e.target.classList.contains('mostrar'))) {
+        document.getElementById('modalImagen').classList.remove('mostrar');
+      }
+    });
+
+    document.addEventListener('keydown', function(e) {
+      if (e.key === 'Escape' && document.getElementById('modalImagen').classList.contains('mostrar')) {
+        document.getElementById('modalImagen').classList.remove('mostrar');
+      }
+    });
   };
 
   // ================= SISTEMA DE VENDEDORES =================
@@ -372,6 +510,7 @@ document.addEventListener('DOMContentLoaded', function () {
     actualizarResumenPedido();
     mostrarNotificacion('Presupuesto reseteado');
   };
+
   // ================= EVENT LISTENERS =================
   btnVendedores.addEventListener('click', (e) => {
     e.preventDefault();
@@ -379,49 +518,26 @@ document.addEventListener('DOMContentLoaded', function () {
     modalVendedores.style.display = 'block';
   });
 
-  spanCerrar.addEventListener('click', () => {
-    modalVendedores.style.display = 'none';
+  spanCerrar.forEach(btn => {
+    btn.addEventListener('click', function() {
+      this.closest('.modal').style.display = 'none';
+    });
+  });
+
+  document.querySelector('.cart-icon').closest('a').addEventListener('click', (e) => {
+    e.preventDefault();
+    mostrarCarrito();
   });
 
   document.getElementById('enviarPresupuesto').addEventListener('click', enviarPresupuesto);
   document.getElementById('descargarPresupuesto').addEventListener('click', generarPDF);
   document.getElementById('resetearPresupuesto').addEventListener('click', resetearPresupuesto);
+  document.getElementById('vaciarCarrito').addEventListener('click', vaciarCarrito);
+  document.getElementById('comprarAhora').addEventListener('click', realizarCompra);
   filtroCategoriaVendedor.addEventListener('change', cargarProductosParaVendedor);
   categoriaSelect.addEventListener('change', aplicarFiltros);
   ordenSelect.addEventListener('change', aplicarFiltros);
   searchInput.addEventListener('input', aplicarFiltros);
-
-  // ================= ZOOM DE IMAGENES =================
-function setupImageZoom() {
-  // Delegación de eventos para manejar imágenes dinámicas
-  document.addEventListener('click', function(e) {
-    // Abrir modal al hacer clic en imagen de producto
-    if (e.target.matches('.producto-imagen-container img')) {
-      const img = e.target;
-      const modal = document.getElementById('modalImagen');
-      const imagenAmpliada = document.getElementById('imagenAmpliada');
-      
-      imagenAmpliada.src = img.src;
-      imagenAmpliada.alt = img.alt;
-      modal.classList.add('mostrar');
-    }
-    
-    // Cerrar modal
-    if (e.target.matches('.cerrar-modal, #modalImagen.mostrar')) {
-      document.getElementById('modalImagen').classList.remove('mostrar');
-    }
-  });
-
-  // Cerrar con tecla ESC
-  document.addEventListener('keydown', function(e) {
-    if (e.key === 'Escape' && document.getElementById('modalImagen').classList.contains('mostrar')) {
-      document.getElementById('modalImagen').classList.remove('mostrar');
-    }
-  });
-}
-
-// Llamar a la función después de cargar productos
-setupImageZoom(); 
 
   // ================= INICIALIZACIÓN =================
   cargarProductos();

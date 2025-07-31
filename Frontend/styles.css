@@ -855,3 +855,46 @@ header {
 .producto-imagen-container img:hover {
   transform: scale(1.05);
 }
+/* Estilos específicos para el carrito */
+#listaCarrito {
+  max-height: 50vh;
+  overflow-y: auto;
+  margin-bottom: 1rem;
+}
+
+.item-carrito {
+  display: flex;
+  align-items: center;
+  padding: 1rem;
+  border-bottom: 1px solid #eee;
+}
+
+.item-carrito img {
+  width: 60px;
+  height: 60px;
+  object-fit: contain;
+  margin-right: 1rem;
+}
+
+.item-carrito-info {
+  flex: 1;
+}
+
+.item-carrito-control {
+  display: flex;
+  align-items: center;
+}
+
+.item-carrito-control input {
+  width: 40px;
+  text-align: center;
+  margin: 0 0.5rem;
+}
+
+.btn-eliminar {
+  background: none;
+  border: none;
+  color: var(--accent);
+  cursor: pointer;
+  margin-left: 1rem;
+}
