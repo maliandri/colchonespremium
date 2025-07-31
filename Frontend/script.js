@@ -1,3 +1,5 @@
+// ============== SCRIPT COMPLETO ==============
+
 document.addEventListener('DOMContentLoaded', function () {
   // ===== URLs de la API =====
   const API_URL = 'https://colchonqn.onrender.com/api/colchones';
@@ -14,6 +16,31 @@ document.addEventListener('DOMContentLoaded', function () {
   const modalCarrito = document.getElementById('modalCarrito');
   const spanCerrar = document.querySelectorAll('.cerrar');
   const filtroCategoriaVendedor = document.getElementById('filtroCategoriaVendedor');
+
+  // ===== Datos de localidades por provincia =====
+  const LOCALIDADES_POR_PROVINCIA = {
+    "Río Negro": [
+      "San Carlos de Bariloche", "General Roca", "Cipolletti", "Viedma",
+      "Villa Regina", "Allen", "Cinco Saltos", "San Antonio Oeste", "El Bolsón",
+      "Catriel", "Choele Choel", "Cervantes", "Chichinales", "Chimpay",
+      "Campo Grande", "General Fernández Oro", "Ingeniero Luis A. Huergo",
+      "Mainqué", "Maquinchao", "General Conesa", "Dina Huapi", "Río Colorado",
+      "Sierra Grande", "Lamarque", "Luis Beltrán", "Los Menucos", "Valcheta",
+      "Pilcaniyeu", "Pomona", "Darwin"
+    ],
+    "Neuquén": [
+      "Neuquén", "Plottier", "Centenario", "Zapala", "Cutral‑Co",
+      "San Martín de los Andes", "Rincón de los Sauces", "Junín de los Andes",
+      "Plaza Huincul", "Chos Malal", "San Patricio del Chañar",
+      "Senillosa", "Villa La Angostura",
+      "Aluminé", "Andacollo", "Añelo", "Buta Ranquil", "Las Lajas",
+      "Las Ovejas", "Loncopué", "Mariano Moreno", "Picún Leufú",
+      "Piedra del Águila", "Villa El Chocón", "Villa Pehuenia", "Vista Alegre",
+      "Bajada del Agrio", "Barrancas", "Caviahue‑Copahue", "El Cholar",
+      "El Huecú", "Huinganco", "Las Coloradas", "Los Miches", "Taquimilán",
+      "Tricao Malal"
+    ]
+  };
 
   // ===== Variables de estado =====
   let productosOriginales = [];
@@ -46,7 +73,6 @@ document.addEventListener('DOMContentLoaded', function () {
       <i class="fas ${tipo === 'success' ? 'fa-check-circle' : 'fa-exclamation-circle'}"></i>
       <span>${mensaje}</span>
     `;
-
     document.body.appendChild(notificacion);
     setTimeout(() => notificacion.classList.add('mostrar'), 10);
     setTimeout(() => {
@@ -57,481 +83,293 @@ document.addEventListener('DOMContentLoaded', function () {
 
   // ================= FUNCIONES PRINCIPALES =================
   const cargarProductos = async () => {
+    mostrarCargando();
     try {
-      mostrarCargando();
-      const response = await fetch(API_URL + '?t=' + new Date().getTime());
-
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.message || `Error HTTP: ${response.status}`);
-      }
-
-      const contentType = response.headers.get('content-type');
-      if (!contentType || !contentType.includes('application/json')) {
-        throw new TypeError("La respuesta no es JSON");
-      }
-
-      productosOriginales = await response.json();
-
-      if (!Array.isArray(productosOriginales)) {
-        throw new Error("Formato de datos inválido");
-      }
-
-      const productosValidos = productosOriginales.filter(p =>
-        p.Mostrar?.toLowerCase() === 'si' &&
-        p.Imagen?.trim() &&
-        p.Nombre?.trim()
+      const resp = await fetch(API_URL + '?t=' + new Date().getTime());
+      if (!resp.ok) throw new Error('Error HTTP ' + resp.status);
+      const cT = resp.headers.get('content-type');
+      if (!cT || !cT.includes('application/json')) throw new TypeError('Respuesta no JSON');
+      productosOriginales = await resp.json();
+      if (!Array.isArray(productosOriginales)) throw new Error('Formato inválido');
+      const validos = productosOriginales.filter(p =>
+        p.Mostrar?.toLowerCase() === 'si' && p.Imagen?.trim() && p.Nombre?.trim()
       );
-
-      if (productosValidos.length === 0) {
-        mostrarError("No hay productos disponibles para mostrar");
-        return;
-      }
-
-      mostrarProductos(productosValidos);
+      if (!validos.length) return mostrarError('No hay productos disponibles');
+      mostrarProductos(validos);
       cargarCategorias();
       cargarCategoriasVendedor();
       setupImageZoom();
-      if (carrito.length > 0) actualizarCarrito();
-
-    } catch (error) {
-      console.error("Error al cargar productos:", error);
-      mostrarError(error.message);
+      if (carrito.length) actualizarCarrito();
+    } catch (e) {
+      console.error(e);
+      mostrarError(e.message);
     }
   };
 
   const cargarCategorias = () => {
-    categoriaSelect.innerHTML = '<option value="">Todas las categorías</option>';
-    const categoriasUnicas = [...new Set(productosOriginales
-      .map(p => p.Categoria)
-      .filter(Boolean))];
-
-    categoriasUnicas.forEach(categoria => {
-      const option = document.createElement('option');
-      option.value = categoria;
-      option.textContent = categoria;
-      categoriaSelect.appendChild(option);
+    categoriaSelect.innerHTML = '<option value="">Todas</option>';
+    const cats = [...new Set(productosOriginales.map(p => p.Categoria).filter(Boolean))];
+    cats.forEach(c => {
+      const o = document.createElement('option');
+      o.value = c; o.textContent = c;
+      categoriaSelect.appendChild(o);
     });
   };
 
   const cargarCategoriasVendedor = () => {
-    filtroCategoriaVendedor.innerHTML = '<option value="">Todas las categorías</option>';
-    const categoriasUnicas = [...new Set(productosOriginales
-      .map(p => p.Categoria)
-      .filter(Boolean))];
-
-    categoriasUnicas.forEach(categoria => {
-      const option = document.createElement('option');
-      option.value = categoria;
-      option.textContent = categoria;
-      filtroCategoriaVendedor.appendChild(option);
+    filtroCategoriaVendedor.innerHTML = '<option value="">Todas</option>';
+    const cats = [...new Set(productosOriginales.map(p => p.Categoria).filter(Boolean))];
+    cats.forEach(c => {
+      const o = document.createElement('option');
+      o.value = c; o.textContent = c;
+      filtroCategoriaVendedor.appendChild(o);
     });
   };
 
-  const mostrarProductos = (productos) => {
-    productosGrid.innerHTML = productos.length === 0 ?
-      '<p class="no-products">No se encontraron productos con estos filtros.</p>' : '';
-
-    productos.forEach((producto, index) => {
-      const productoElement = document.createElement('div');
-      productoElement.className = 'producto';
-      productoElement.style.animationDelay = `${index * 0.1}s`;
-
-      const imagenUrl = producto.Imagen.trim();
-      const imagenAlt = producto.Nombre.trim() || 'Producto sin nombre';
-
-      productoElement.innerHTML = `
+  const mostrarProductos = productos => {
+    productosGrid.innerHTML = productos.length === 0
+      ? '<p class="no-products">No se encontraron productos.</p>' : '';
+    productos.forEach((p, idx) => {
+      const div = document.createElement('div');
+      div.className = 'producto'; div.style.animationDelay = `${idx*0.1}s`;
+      div.innerHTML = `
         <div class="producto-imagen-container">
-          <img src="${imagenUrl}" 
-               alt="${imagenAlt}" 
-               loading="lazy"
-               onerror="this.onerror=null;this.src='https://via.placeholder.com/300?text=Imagen+no+disponible'">
+          <img src="${p.Imagen.trim()}" alt="${p.Nombre.trim()||'Sin nombre'}" loading="lazy"
+            onerror="this.onerror=null;this.src='https://via.placeholder.com/300?text=Imagen+no+disponible'">
         </div>
         <div class="producto-info">
-          <h3>${producto.Nombre || 'Sin nombre'}</h3>
-          <p>${producto.Marca || 'Sin marca'}</p>
-          <p>$${parseInt(producto.Precio || 0).toLocaleString('es-AR')}</p>
-          <span>${producto.Categoria || 'Sin categoría'}</span>
-          <button class="btn-comprar" data-id="${producto._id}">Agregar al carrito</button>
+          <h3>${p.Nombre||''}</h3>
+          <p>${p.Marca||''}</p>
+          <p>$${parseInt(p.Precio||0).toLocaleString('es-AR')}</p>
+          <span>${p.Categoria||''}</span>
+          <button class="btn-comprar" data-id="${p._id}">Agregar al carrito</button>
         </div>
       `;
-
-      productosGrid.appendChild(productoElement);
+      productosGrid.appendChild(div);
     });
-
-    document.querySelectorAll('.btn-comprar').forEach(btn => {
-      btn.addEventListener('click', agregarAlCarrito);
-    });
+    document.querySelectorAll('.btn-comprar').forEach(btn => btn.addEventListener('click', agregarAlCarrito));
   };
 
-  // ================= FUNCIONES DE FILTROS =================
-  function aplicarFiltros() {
-    const searchTerm = searchInput.value.toLowerCase();
-    const categoria = categoriaSelect.value;
-    const orden = ordenSelect.value;
+  const aplicarFiltros = () => {
+    const term = searchInput.value.toLowerCase();
+    const cat = categoriaSelect.value, ord = ordenSelect.value;
+    let arr = productosOriginales.filter(p =>
+      (!term || [p.Nombre, p.Marca, p.Categoria].some(s => s?.toLowerCase().includes(term))) &&
+      (!cat || p.Categoria === cat)
+    );
+    if (ord === 'asc') arr.sort((a,b)=>a.Precio - b.Precio);
+    if (ord === 'desc') arr.sort((a,b)=>b.Precio - a.Precio);
+    mostrarProductos(arr);
+  };
 
-    let productosFiltrados = [...productosOriginales]
-      .filter(p =>
-        (!searchTerm ||
-          p.Nombre?.toLowerCase().includes(searchTerm) ||
-          p.Marca?.toLowerCase().includes(searchTerm) ||
-          p.Categoria?.toLowerCase().includes(searchTerm)) &&
-        (!categoria || p.Categoria === categoria)
-      );
-
-    if (orden === 'asc') productosFiltrados.sort((a, b) => (a.Precio || 0) - (b.Precio || 0));
-    if (orden === 'desc') productosFiltrados.sort((a, b) => (b.Precio || 0) - (a.Precio || 0));
-
-    mostrarProductos(productosFiltrados);
-  }
-
-  // ================= CARRITO DE COMPRAS =================
-  const agregarAlCarrito = (e) => {
-    const productoId = e.target.getAttribute('data-id');
-    const producto = productosOriginales.find(p => p._id === productoId);
-
-    if (!producto) {
-      mostrarNotificacion('Producto no encontrado', 'error');
-      return;
-    }
-
-    const itemExistente = carrito.find(item => item.id === productoId);
-
-    if (itemExistente) {
-      itemExistente.cantidad += 1;
-    } else {
-      carrito.push({
-        id: productoId,
-        nombre: producto.Nombre,
-        precio: producto.Precio,
-        cantidad: 1,
-        imagen: producto.Imagen
-      });
-    }
-
-    actualizarCarrito();
-    mostrarNotificacion(`${producto.Nombre} agregado al carrito`);
+  // ================= CARRITO =================
+  const agregarAlCarrito = e => {
+    const id = e.target.dataset.id;
+    const p = productosOriginales.find(x=>x._id===id);
+    if (!p) return mostrarNotificacion('Producto no encontrado','error');
+    let item = carrito.find(x=>x.id===id);
+    item ? item.cantidad++ : carrito.push({id, nombre:p.Nombre, precio:p.Precio, cantidad:1, imagen:p.Imagen});
+    actualizarCarrito(); mostrarNotificacion(`${p.Nombre} agregado`);
   };
 
   const actualizarCarrito = () => {
-    const totalItems = carrito.reduce((total, item) => total + item.cantidad, 0);
-    cartCount.textContent = totalItems;
-    cartCount.style.display = totalItems > 0 ? 'flex' : 'none';
+    const total = carrito.reduce((ac,x)=>ac+x.cantidad,0);
+    cartCount.textContent = total;
+    cartCount.style.display = total? 'flex':'none';
     localStorage.setItem('carrito', JSON.stringify(carrito));
   };
 
   const mostrarCarrito = () => {
     const lista = document.getElementById('listaCarrito');
     const detalle = document.getElementById('detalleCarrito');
-    const totalElement = document.getElementById('totalCarrito');
-    
-    lista.innerHTML = '';
-    let total = 0;
-
-    if (carrito.length === 0) {
-      lista.innerHTML = '<p class="no-products">Tu carrito está vacío</p>';
+    const totalEl = document.getElementById('totalCarrito');
+    lista.innerHTML = ''; let tot=0;
+    if (!carrito.length) {
+      lista.innerHTML = '<p>Tu carrito está vacío</p>';
       detalle.innerHTML = '<p>No hay productos en el carrito</p>';
-      totalElement.textContent = '0.00';
-      modalCarrito.style.display = 'block';
-      return;
+      totalEl.textContent = '0.00'; modalCarrito.style.display = 'block'; return;
     }
-
-    carrito.forEach(item => {
-      const producto = productosOriginales.find(p => p._id === item.id);
-      const subtotal = producto.Precio * item.cantidad;
-      total += subtotal;
-
-      const itemElement = document.createElement('div');
-      itemElement.className = 'item-carrito';
-      itemElement.innerHTML = `
-        <img src="${producto.Imagen}" alt="${producto.Nombre}">
+    carrito.forEach(it => {
+      const p = productosOriginales.find(x=>x._id===it.id);
+      const sub = p.Precio * it.cantidad; tot += sub;
+      const div = document.createElement('div'); div.className='item-carrito';
+      div.innerHTML = `
+        <img src="${p.Imagen}" alt="${p.Nombre}">
         <div class="item-carrito-info">
-          <h4>${producto.Nombre}</h4>
-          <p>$${producto.Precio.toLocaleString('es-AR')} c/u</p>
+          <h4>${p.Nombre}</h4><p>$${p.Precio.toLocaleString('es-AR')} c/u</p>
         </div>
         <div class="item-carrito-control">
-          <button class="restar" data-id="${producto._id}">-</button>
-          <input type="number" value="${item.cantidad}" min="1" class="cantidad" data-id="${producto._id}">
-          <button class="sumar" data-id="${producto._id}">+</button>
-          <button class="btn-eliminar" data-id="${producto._id}">
-            <i class="fas fa-trash"></i>
-          </button>
+          <button class="restar" data-id="${p._id}">-</button>
+          <input type="number" value="${it.cantidad}" min="1" class="cantidad" data-id="${p._id}">
+          <button class="sumar" data-id="${p._id}">+</button>
+          <button class="btn-eliminar" data-id="${p._id}"><i class="fas fa-trash"></i></button>
         </div>
       `;
-      lista.appendChild(itemElement);
+      lista.appendChild(div);
     });
-
-    detalle.innerHTML = `
-      <div class="item-pedido">
-        <span>${carrito.reduce((sum, item) => sum + item.cantidad, 0)} productos</span>
-        <span>$${total.toFixed(2)}</span>
-      </div>
-    `;
-    totalElement.textContent = total.toFixed(2);
-    modalCarrito.style.display = 'block';
-
-    // Asignar eventos
-    document.querySelectorAll('.item-carrito-control .sumar').forEach(btn => {
-      btn.addEventListener('click', (e) => {
-        const id = e.target.getAttribute('data-id');
-        const item = carrito.find(item => item.id === id);
-        item.cantidad += 1;
-        actualizarCarrito();
-        mostrarCarrito();
-      });
-    });
-
-    document.querySelectorAll('.item-carrito-control .restar').forEach(btn => {
-      btn.addEventListener('click', (e) => {
-        const id = e.target.getAttribute('data-id');
-        const item = carrito.find(item => item.id === id);
-        if (item.cantidad > 1) {
-          item.cantidad -= 1;
-          actualizarCarrito();
-          mostrarCarrito();
-        }
-      });
-    });
-
-    document.querySelectorAll('.btn-eliminar').forEach(btn => {
-      btn.addEventListener('click', (e) => {
-        const id = e.target.closest('button').getAttribute('data-id');
-        carrito = carrito.filter(item => item.id !== id);
-        actualizarCarrito();
-        mostrarCarrito();
-        mostrarNotificacion('Producto eliminado del carrito');
-      });
-    });
+    detalle.innerHTML = `<div class="item-pedido"><span>${carrito.length} productos</span><span>$${tot.toFixed(2)}</span></div>`;
+    totalEl.textContent = tot.toFixed(2); modalCarrito.style.display='block';
+    // handlers sumar/restar/eliminar...
+    document.querySelectorAll('.sumar').forEach(b => b.addEventListener('click', e => {
+      const id=e.target.dataset.id, it=carrito.find(x=>x.id===id); it.cantidad++; actualizarCarrito(); mostrarCarrito();
+    }));
+    document.querySelectorAll('.restar').forEach(b => b.addEventListener('click', e => {
+      const id=e.target.dataset.id, it=carrito.find(x=>x.id===id);
+      if (it.cantidad>1) it.cantidad--, actualizarCarrito(), mostrarCarrito();
+    }));
+    document.querySelectorAll('.btn-eliminar').forEach(b=>b.addEventListener('click', e=>{
+      carrito = carrito.filter(x=>x.id!==e.target.closest('button').dataset.id);
+      actualizarCarrito(); mostrarCarrito(); mostrarNotificacion('Producto eliminado');
+    }));
   };
 
-  const vaciarCarrito = () => {
-    carrito = [];
-    actualizarCarrito();
-    mostrarCarrito();
-    mostrarNotificacion('Carrito vaciado');
-  };
-
+  const vaciarCarrito = () => { carrito=[]; actualizarCarrito(); mostrarCarrito(); mostrarNotificacion('Carrito vaciado'); };
   const realizarCompra = () => {
-    if (carrito.length === 0) {
-      mostrarNotificacion('El carrito está vacío', 'error');
-      return;
-    }
-    
-    // Aquí iría la lógica de pago real
-    mostrarNotificacion('Compra realizada con éxito! Redirigiendo...');
-    setTimeout(() => {
-      carrito = [];
-      actualizarCarrito();
-      modalCarrito.style.display = 'none';
-    }, 2000);
+    if (!carrito.length) return mostrarNotificacion('Carrito vacío','error');
+    mostrarNotificacion('Compra realizada con éxito!'); setTimeout(()=>{ carrito=[]; actualizarCarrito(); modalCarrito.style.display='none';},2000);
   };
 
   // ================= ZOOM DE IMAGENES =================
   const setupImageZoom = () => {
-    document.addEventListener('click', function(e) {
+    document.addEventListener('click', e => {
       if (e.target.closest('.producto-imagen-container img')) {
-        const img = e.target.closest('.producto-imagen-container img');
-        const modal = document.getElementById('modalImagen');
-        const imagenAmpliada = document.getElementById('imagenAmpliada');
-        
-        imagenAmpliada.src = img.src;
-        imagenAmpliada.alt = img.alt;
-        modal.classList.add('mostrar');
+        const img = e.target.closest('img'), modal = document.getElementById('modalImagen'), imgAmp = document.getElementById('imagenAmpliada');
+        imgAmp.src = img.src; imgAmp.alt = img.alt; modal.classList.add('mostrar');
       }
-      
-      if (e.target.classList.contains('cerrar-modal') || 
-          (e.target.id === 'modalImagen' && e.target.classList.contains('mostrar'))) {
+      if (e.target.classList.contains('cerrar-modal') || (e.target.id==='modalImagen' && e.target.classList.contains('mostrar'))) {
         document.getElementById('modalImagen').classList.remove('mostrar');
       }
     });
-
-    document.addEventListener('keydown', function(e) {
-      if (e.key === 'Escape' && document.getElementById('modalImagen').classList.contains('mostrar')) {
+    document.addEventListener('keydown', e => {
+      if (e.key==='Escape' && document.getElementById('modalImagen').classList.contains('mostrar')) {
         document.getElementById('modalImagen').classList.remove('mostrar');
       }
     });
   };
 
-  // ================= SISTEMA DE VENDEDORES =================
+  // =============== VENDEDOR ===============
   const cargarProductosParaVendedor = () => {
-    const categoria = filtroCategoriaVendedor.value;
-    const productosFiltrados = categoria ?
-      productosOriginales.filter(p => p.Categoria === categoria) :
-      productosOriginales;
-    mostrarProductosParaVendedor(productosFiltrados);
+    const cat = filtroCategoriaVendedor.value;
+    const arr = cat ? productosOriginales.filter(p=>p.Categoria===cat) : productosOriginales;
+    mostrarProductosParaVendedor(arr);
   };
-
-  const mostrarProductosParaVendedor = (productos) => {
-    const lista = document.getElementById('listaProductosVendedor');
-    lista.innerHTML = '';
-
-    productos.forEach(producto => {
+  const mostrarProductosParaVendedor = arr => {
+    const lista = document.getElementById('listaProductosVendedor'); lista.innerHTML='';
+    arr.forEach(p=>{
       lista.innerHTML += `
         <div class="producto-vendedor">
-          <h4>${producto.Nombre || 'Sin nombre'}</h4>
-          <p>Marca: ${producto.Marca || 'Sin marca'}</p>
-          <p>Precio: $${parseInt(producto.Precio || 0).toLocaleString('es-AR')}</p>
+          <h4>${p.Nombre||''}</h4><p>Marca: ${p.Marca||''}</p>
+          <p>Precio: $${parseInt(p.Precio||0).toLocaleString('es-AR')}</p>
           <div class="cantidad-control">
-            <button class="restar" data-id="${producto._id}">-</button>
-            <input type="number" value="0" min="0" class="cantidad" data-id="${producto._id}">
-            <button class="sumar" data-id="${producto._id}">+</button>
+            <button class="restar" data-id="${p._id}">-</button>
+            <input type="number" value="0" min="0" class="cantidad" data-id="${p._id}">
+            <button class="sumar" data-id="${p._id}">+</button>
           </div>
-          <button class="btn-agregar" data-id="${producto._id}">Agregar al pedido</button>
+          <button class="btn-agregar" data-id="${p._id}">Agregar</button>
         </div>
       `;
     });
-
-    document.querySelectorAll('.btn-agregar').forEach(btn => {
-      btn.addEventListener('click', agregarAlPedido);
-    });
-
-    document.querySelectorAll('.sumar').forEach(btn => {
-      btn.addEventListener('click', (e) => {
-        const input = e.target.parentElement.querySelector('.cantidad');
-        input.value = parseInt(input.value) + 1;
-      });
-    });
-
-    document.querySelectorAll('.restar').forEach(btn => {
-      btn.addEventListener('click', (e) => {
-        const input = e.target.parentElement.querySelector('.cantidad');
-        if (parseInt(input.value) > 0) input.value = parseInt(input.value) - 1;
-      });
-    });
+    document.querySelectorAll('.btn-agregar').forEach(b=>b.addEventListener('click', agregarAlPedido));
+    document.querySelectorAll('.sumar').forEach(b=>b.addEventListener('click', e=>{
+      const inp = e.target.parentNode.querySelector('.cantidad'); inp.value = parseInt(inp.value)+1;
+    }));
+    document.querySelectorAll('.restar').forEach(b=>b.addEventListener('click', e=>{
+      const inp = e.target.parentNode.querySelector('.cantidad'); if (parseInt(inp.value)>0) inp.value = parseInt(inp.value)-1;
+    }));
   };
-
-  const agregarAlPedido = (e) => {
-    const productoId = e.target.getAttribute('data-id');
-    const input = document.querySelector(`.cantidad[data-id="${productoId}"]`);
-    const cantidad = parseInt(input.value);
-    const producto = productosOriginales.find(p => p._id === productoId);
-
-    if (cantidad <= 0 || !producto) {
-      mostrarNotificacion('Seleccione una cantidad válida', 'error');
-      return;
-    }
-
-    const itemExistente = carritoVendedor.find(item => item.id === productoId);
-    if (itemExistente) {
-      itemExistente.cantidad += cantidad;
-    } else {
-      carritoVendedor.push({
-        id: productoId,
-        nombre: producto.Nombre,
-        precio: producto.Precio,
-        cantidad: cantidad,
-        imagen: producto.Imagen
-      });
-    }
-
-    input.value = 0;
-    actualizarResumenPedido();
-    mostrarNotificacion(`${cantidad} ${producto.Nombre} agregado(s)`);
+  const agregarAlPedido = e => {
+    const id = e.target.dataset.id;
+    const inp = document.querySelector(`.cantidad[data-id="${id}"]`);
+    const cant = parseInt(inp.value);
+    const p = productosOriginales.find(x=>x._id===id);
+    if (!p || cant<=0) return mostrarNotificacion('Cantidad inválida','error');
+    const it = carritoVendedor.find(x=>x.id===id);
+    if (it) it.cantidad+=cant; else carritoVendedor.push({ id, nombre:p.Nombre, precio:p.Precio, cantidad:cant, imagen:p.Imagen });
+    inp.value='0';
+    actualizarResumenPedido(); mostrarNotificacion(`${cant} ${p.Nombre} agregado(s)`);
   };
-
   const actualizarResumenPedido = () => {
-    const detalle = document.getElementById('detallePedido');
-    const totalElement = document.getElementById('totalPedido');
-    let total = 0;
-
-    detalle.innerHTML = carritoVendedor.length === 0 ?
-      '<p>No hay productos en el pedido</p>' : '';
-
-    carritoVendedor.forEach(item => {
-      const subtotal = item.precio * item.cantidad;
-      total += subtotal;
-      detalle.innerHTML += `
-        <div class="item-pedido">
-          <span>${item.nombre} x${item.cantidad}</span>
-          <span>$${subtotal.toFixed(2)}</span>
-        </div>
-      `;
+    const det = document.getElementById('detallePedido'), totEl = document.getElementById('totalPedido');
+    let tot=0;
+    det.innerHTML = '';
+    carritoVendedor.forEach(it=>{
+      const sub = it.precio * it.cantidad; tot += sub;
+      det.innerHTML += `<div class="item-pedido"><span>${it.nombre} x${it.cantidad}</span><span>$${sub.toFixed(2)}</span></div>`;
     });
+    totEl.textContent = tot.toFixed(2);
+  };
 
-    totalElement.textContent = total.toFixed(2);
+  // ===== Funciones nuevas =====
+  const cargarLocalidades = () => {
+    const provincia = document.getElementById('provinciaCliente');
+    const localidad = document.getElementById('localidadCliente');
+    provincia.addEventListener('change', function(){
+      localidad.innerHTML = '<option value="">Seleccione una localidad</option>';
+      localidad.disabled = !this.value;
+      if (this.value) {
+        LOCALIDADES_POR_PROVINCIA[this.value].forEach(loc => {
+          const o = document.createElement('option'); o.value = loc; o.textContent = loc;
+          localidad.appendChild(o);
+        });
+      }
+    });
   };
 
   const enviarPresupuesto = () => {
-    const nombreVendedor = document.getElementById('nombreVendedor').value.trim();
-    const nombreCliente = document.getElementById('nombreCliente').value.trim();
-    const emailCliente = document.getElementById('emailCliente').value.trim();
-    const total = document.getElementById('totalPedido').textContent;
-
-    if (!nombreVendedor || !nombreCliente || carritoVendedor.length === 0) {
-      mostrarNotificacion('Complete todos los campos y agregue productos', 'error');
-      return;
+    const nv = document.getElementById('nombreVendedor').value.trim();
+    const nc = document.getElementById('nombreCliente').value.trim();
+    const tel = document.getElementById('telefonoCliente').value.trim();
+    const prov = document.getElementById('provinciaCliente').value;
+    const loc = document.getElementById('localidadCliente').value;
+    const dir = document.getElementById('direccionCliente').value.trim();
+    const email = document.getElementById('emailCliente').value.trim();
+    const tot = document.getElementById('totalPedido').textContent;
+    if (!nv||!nc||!tel||!prov||!loc||!carritoVendedor.length) {
+      return mostrarNotificacion('Complete todos los campos obligatorios', 'error');
     }
-
-    const items = carritoVendedor.map(item =>
-      `${item.nombre} x${item.cantidad}: $${(item.precio * item.cantidad).toFixed(2)}`
-    ).join('\n');
-
-    window.location.href = `mailto:marianoaliandri@gmail.com?subject=Presupuesto para ${nombreCliente}&body=
-      Vendedor: ${nombreVendedor}%0D%0A
-      Cliente: ${nombreCliente}%0D%0A
-      Email: ${emailCliente}%0D%0A%0D%0A
-      ${items}%0D%0A%0D%0A
-      Total: $${total}%0D%0A
-      Fecha: ${new Date().toLocaleDateString()}
-    `.replace(/\s+/g, ' ');
+    const items = carritoVendedor.map(it=>`${it.nombre} x${it.cantidad}: $${(it.precio*it.cantidad).toFixed(2)}`).join('\n');
+    let body = `Vendedor: ${nv}%0D%0ACliente: ${nc}%0D%0ATeléfono: ${tel}%0D%0AProvincia: ${prov}%0D%0ALocalidad: ${loc}%0D%0A`;
+    if (dir) body += `Dirección: ${dir}%0D%0A`;
+    if (email) body += `Email: ${email}%0D%0A`;
+    body += `%0D%0ADetalle del pedido:%0D%0A${items}%0D%0ATotal: $${tot}%0D%0AFecha: ${new Date().toLocaleDateString()}`;
+    window.location.href = `mailto:marianoaliandri@gmail.com?subject=Presupuesto para ${nc}&body=${body.replace(/\s+/g,' ')}`;
   };
 
   const generarPDF = () => {
-    if (carritoVendedor.length === 0) {
-      mostrarNotificacion('No hay productos en el presupuesto', 'error');
-      return;
-    }
-
+    if (!carritoVendedor.length) return mostrarNotificacion('No hay productos en el presupuesto', 'error');
     const { jsPDF } = window.jspdf;
     const doc = new jsPDF();
-
-    doc.setFont('helvetica');
+    doc.setFont('helvetica', 'bold'); doc.setFontSize(16);
     doc.text('Presupuesto Colchones Premium', 105, 15, { align: 'center' });
+    doc.setFont('helvetica', 'normal'); doc.setFontSize(12);
     doc.text(`Fecha: ${new Date().toLocaleDateString()}`, 14, 25);
     doc.text(`Vendedor: ${document.getElementById('nombreVendedor').value}`, 14, 30);
     doc.text(`Cliente: ${document.getElementById('nombreCliente').value}`, 14, 35);
-
-    let y = 50;
-    carritoVendedor.forEach(item => {
-      doc.text(`${item.nombre} x${item.cantidad}`, 20, y);
-      doc.text(`$${(item.precio * item.cantidad).toFixed(2)}`, 180, y, { align: 'right' });
+    doc.text(`Teléfono: ${document.getElementById('telefonoCliente').value}`, 14, 40);
+    doc.text(`Provincia: ${document.getElementById('provinciaCliente').value}`, 14, 45);
+    doc.text(`Localidad: ${document.getElementById('localidadCliente').value}`, 14, 50);
+    let y = 55; const dir = document.getElementById('direccionCliente').value;
+    if (dir) { doc.text(`Dirección: ${dir}`, 14, y); y+=5; }
+    doc.setFont('helvetica','bold'); doc.text('Detalle del pedido:', 14, y+5);
+    doc.setFont('helvetica','normal'); y+=10;
+    carritoVendedor.forEach(it => {
+      doc.text(`${it.nombre} x${it.cantidad}`, 20, y);
+      doc.text(`$${(it.precio*it.cantidad).toFixed(2)}`, 180, y, { align: 'right' });
       y += 7;
     });
-
-    doc.text(`Total: $${document.getElementById('totalPedido').textContent}`, 180, y + 5, { align: 'right' });
-    doc.save(`Presupuesto_${document.getElementById('nombreCliente').value.replace(/\s+/g, '_')}.pdf`);
-  };
-
-  const resetearPresupuesto = () => {
-    carritoVendedor = [];
-    document.getElementById('nombreCliente').value = '';
-    document.getElementById('emailCliente').value = '';
-    document.querySelectorAll('.cantidad').forEach(input => input.value = 0);
-    actualizarResumenPedido();
-    mostrarNotificacion('Presupuesto reseteado');
+    doc.setFont('helvetica','bold');
+    doc.text(`Total: $${document.getElementById('totalPedido').textContent}`, 180, y+5, { align: 'right' });
+    const clean = document.getElementById('nombreCliente').value.replace(/\s+/g,'_');
+    doc.save(`Presupuesto_${clean}.pdf`);
   };
 
   // ================= EVENT LISTENERS =================
-  btnVendedores.addEventListener('click', (e) => {
-    e.preventDefault();
-    cargarProductosParaVendedor();
-    modalVendedores.style.display = 'block';
-  });
-
-  spanCerrar.forEach(btn => {
-    btn.addEventListener('click', function() {
-      this.closest('.modal').style.display = 'none';
-    });
-  });
-
-  document.querySelector('.cart-icon').closest('a').addEventListener('click', (e) => {
-    e.preventDefault();
-    mostrarCarrito();
-  });
-
+  btnVendedores.addEventListener('click', e => { e.preventDefault(); cargarProductosParaVendedor(); modalVendedores.style.display='block'; });
+  spanCerrar.forEach(b => b.addEventListener('click', function(){ this.closest('.modal').style.display='none'; }));
+  document.querySelector('.cart-icon').closest('a').addEventListener('click', e => { e.preventDefault(); mostrarCarrito(); });
   document.getElementById('enviarPresupuesto').addEventListener('click', enviarPresupuesto);
   document.getElementById('descargarPresupuesto').addEventListener('click', generarPDF);
-  document.getElementById('resetearPresupuesto').addEventListener('click', resetearPresupuesto);
+  document.getElementById('resetearPresupuesto').addEventListener('click', function(){ carritoVendedor=[]; document.getElementById('nombreCliente').value=''; document.getElementById('emailCliente').value=''; document.querySelectorAll('.cantidad').forEach(i=>i.value=0); actualizarResumenPedido(); mostrarNotificacion('Presupuesto reseteado'); });
   document.getElementById('vaciarCarrito').addEventListener('click', vaciarCarrito);
   document.getElementById('comprarAhora').addEventListener('click', realizarCompra);
   filtroCategoriaVendedor.addEventListener('change', cargarProductosParaVendedor);
@@ -539,6 +377,8 @@ document.addEventListener('DOMContentLoaded', function () {
   ordenSelect.addEventListener('change', aplicarFiltros);
   searchInput.addEventListener('input', aplicarFiltros);
 
-  // ================= INICIALIZACIÓN =================
+  // ================= INICIALIZACIÓN FINAL =================
   cargarProductos();
+  cargarLocalidades();
 });
+// ============== FIN SCRIPT ==============

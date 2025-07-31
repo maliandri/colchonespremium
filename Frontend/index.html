@@ -113,62 +113,88 @@
         </div>
     </footer>
 
-    <!-- Modal para vendedores - ACTUALIZADO -->
-    <div id="modalVendedores" class="modal" aria-hidden="true" role="dialog" aria-labelledby="modalTitulo">
-        <div class="modal-contenido">
-            <button class="cerrar" aria-label="Cerrar modal">&times;</button>
-            <h2 id="modalTitulo">Panel de Vendedores</h2>
-            
-            <!-- Sección 1: Datos -->
-            <div class="seccion-datos">
-                <div class="form-group">
-                    <label for="nombreVendedor">Vendedor:</label>
-                    <input type="text" id="nombreVendedor" class="form-input" required>
-                </div>
-                <div class="form-group">
-                    <label for="nombreCliente">Cliente:</label>
-                    <input type="text" id="nombreCliente" class="form-input" placeholder="Nombre y Apellido" required>
-                </div>
-                <div class="form-group">
-                    <label for="emailCliente">Email:</label>
-                    <input type="email" id="emailCliente" class="form-input" placeholder="cliente@email.com">
-                </div>
-            </div>
-
-            <!-- Sección 2: Productos -->
-            <div class="seccion-productos">
-                <h3>Productos</h3>
-                <div class="filtro-categoria">
-                    <select id="filtroCategoriaVendedor" class="form-input">
-                        <option value="">Todas las categorías</option>
-                    </select>
-                </div>
-                <div id="listaProductosVendedor" class="lista-productos"></div>
-            </div>
-
-            <!-- Sección 3: Resumen -->
-            <div class="seccion-resumen">
-                <h3>Resumen</h3>
-                <div id="detallePedido" class="detalle-pedido"></div>
-                <div class="total-pedido">
-                    <strong>Total: $<span id="totalPedido">0.00</span></strong>
-                </div>
-            </div>
-
-            <!-- Sección 4: Botones -->
-            <div class="seccion-botones">
-                <button id="enviarPresupuesto" class="btn btn-enviar">
-                    <i class="fas fa-paper-plane"></i> Enviar
-                </button>
-                <button id="descargarPresupuesto" class="btn btn-descargar">
-                    <i class="fas fa-file-pdf"></i> PDF
-                </button>
-                <button id="resetearPresupuesto" class="btn btn-resetear">
-                    <i class="fas fa-trash-alt"></i> Resetear
-                </button>
-            </div>
-        </div>
-    </div> 
+   <div id="modalVendedores" class="modal">
+  <div class="modal-contenido">
+    <span class="cerrar">&times;</span>
+    <h2>Sistema de Vendedores</h2>
+    
+    <!-- Campos del formulario -->
+    <div class="form-group">
+      <label for="nombreVendedor">Nombre del Vendedor:</label>
+      <input type="text" id="nombreVendedor" required>
+    </div>
+    
+    <div class="form-group">
+      <label for="nombreCliente">Nombre del Cliente:</label>
+      <input type="text" id="nombreCliente" required>
+    </div>
+    
+    <div class="form-group">
+      <label for="telefonoCliente">Teléfono del Cliente:</label>
+      <input type="tel" id="telefonoCliente" required>
+    </div>
+    
+    <!-- Selector de Provincia (nuevo) -->
+    <div class="form-group">
+      <label for="provinciaCliente">Provincia:</label>
+      <select id="provinciaCliente" required>
+        <option value="">Seleccione una provincia</option>
+        <option value="Río Negro">Río Negro</option>
+        <option value="Neuquén">Neuquén</option>
+      </select>
+    </div>
+    
+    <!-- Selector de Localidad (dinámico) -->
+    <div class="form-group">
+      <label for="localidadCliente">Localidad:</label>
+      <select id="localidadCliente" required disabled>
+        <option value="">Primero seleccione una provincia</option>
+      </select>
+    </div>
+    
+    <div class="form-group">
+      <label for="direccionCliente">Dirección (opcional):</label>
+      <input type="text" id="direccionCliente">
+    </div>
+    
+    <div class="form-group">
+      <label for="emailCliente">Email (opcional):</label>
+      <input type="email" id="emailCliente">
+    </div>
+    
+    <!-- Filtro de categorías -->
+    <div class="filtro-container">
+      <label for="filtroCategoriaVendedor">Filtrar por categoría:</label>
+      <select id="filtroCategoriaVendedor"></select>
+    </div>
+    
+    <!-- Lista de productos -->
+    <div id="listaProductosVendedor" class="lista-productos-vendedor"></div>
+    
+    <!-- Resumen del pedido -->
+    <div class="resumen-pedido">
+      <h3>Resumen del Pedido</h3>
+      <div id="detallePedido"></div>
+      <div class="total-pedido">
+        <span>Total:</span>
+        <span id="totalPedido">0.00</span>
+      </div>
+    </div>
+    
+    <!-- Botones de acción -->
+    <div class="acciones-vendedor">
+      <button id="enviarPresupuesto" class="btn-accion">
+        <i class="fas fa-paper-plane"></i> Enviar por Email
+      </button>
+      <button id="descargarPresupuesto" class="btn-accion">
+        <i class="fas fa-file-pdf"></i> Descargar PDF
+      </button>
+      <button id="resetearPresupuesto" class="btn-accion">
+        <i class="fas fa-trash"></i> Resetear
+      </button>
+    </div>
+  </div>
+</div>
 <!-- Modal para imagen ampliada -->
 <div id="modalImagen" class="modal-imagen">
   <div class="modal-imagen-contenido">
